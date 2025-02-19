@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package loadbalancer;
+
+service LoadBalancerService {
+    rpc HandleRequest (Request) returns (Response) {}
+}
+
+message Request {
+    string message = 1;
+}
+
+message Response {
+    string message = 1;
+    string server_id = 2;
+}
