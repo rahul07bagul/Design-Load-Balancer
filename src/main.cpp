@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
         LoadBalancerService service(server_manager, strategy);
         
         // Setup and start gRPC server
-        std::string server_address = "0.0.0.0:" + std::to_string(config.lb_port);
+        std::string server_address = std::string("0.0.0.0:") + std::to_string(config.lb_port);
         grpc::ServerBuilder builder;
         
         // Add listening port to the server
@@ -86,10 +86,11 @@ int main(int argc, char** argv) {
         
         // Start the server
         std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
-        std::cout << "Load Balancer started on " << server_address << std::endl;
-        std::cout << "Backend servers range: " << config.min_servers << " - " 
+        std::cout << "Load Balancer started at: " << server_address << std::endl;
+        std::cout << "Backend servers configuration:" << std::endl;
+        std::cout << "  - Number of servers: " << config.min_servers << " to " 
                  << config.max_servers << std::endl;
-        std::cout << "Backend ports start from: " << config.start_port << std::endl;
+        std::cout << "  - Starting port: " << config.start_port << std::endl;
         
         // Keep the server running
         server->Wait();

@@ -1,7 +1,12 @@
 #include "core/server_manager.hpp"
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
+#include <windows.h>
+#include <process.h>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+// Forward declaration
+static HANDLE CreateServerProcess(const std::string& command);
 
 ServerManager::ServerManager(const std::string& executable_path,
                            uint16_t start_port,
@@ -26,14 +31,9 @@ bool ServerManager::addServer() {
 
     auto server = std::make_shared<Server>("localhost", next_port_);
     
-    pid_t pid = fork();
-    if (pid == 0) {
-        // Child process
-        std::string port_str = std::to_string(next_port_);
-        execl(executable_path_.c_str(), executable_path_.c_str(), 
-              port_str.c_str(), nullptr);
-        exit(1);
-    } else if (pid > 0) {
+    std::string command = executable_path_ + " " + std::to_string(next_port_);
+    HANDLE hProcess = CreateServerProcess(command);
+    if (hProcess != NULL) {
         servers_.push_back(server);
         next_port_++;
         return true;
@@ -61,4 +61,34 @@ std::vector<std::shared_ptr<Server>> ServerManager::getActiveServers() {
         }
     }
     return active_servers;
+}
+
+static HANDLE CreateServerProcess(const std::string& command) {
+    STARTUPINFOW siw;
+    PROCESS_INFORMATION pi;
+
+    ZeroMemory(&siw, sizeof(siw));
+    siw.cb = sizeof(siw);
+    ZeroMemory(&pi, sizeof(pi));
+
+    // Convert std::string command to std::wstring
+    int size_needed = MultiByteToWideChar(CP_UTF8, 0, command.c_str(), -1, NULL, 0);
+    std::wstring wCommand(size_needed, 0);
+    MultiByteToWideChar(CP_UTF8, 0, command.c_str(), -1, &wCommand[0], size_needed);
+
+    if (!CreateProcessW(nullptr,      // No module name (use command line)
+        &wCommand[0],                 // Command line as wide string
+        nullptr,                      // Process handle not inheritable
+        nullptr,                      // Thread handle not inheritable
+        FALSE,                        // Set handle inheritance to FALSE
+        0,                           // No creation flags
+        nullptr,                     // Use parent's environment block
+        nullptr,                     // Use parent's starting directory 
+        &siw,                        // Pointer to STARTUPINFOW structure
+        &pi)) {                      // Pointer to PROCESS_INFORMATION structure
+        throw std::runtime_error("CreateProcess failed");
+    }
+
+    CloseHandle(pi.hThread);
+    return pi.hProcess;
 }

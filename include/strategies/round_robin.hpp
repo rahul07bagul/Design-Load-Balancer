@@ -1,6 +1,8 @@
 #pragma once
 #include "strategies/strategy.hpp"
 #include <atomic>
+#include <memory>
+#include <vector>
 
 class RoundRobinStrategy : public Strategy {
 public:
