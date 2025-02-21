@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package admin;
+
+import "google/protobuf/empty.proto";
+
+// We can reuse or define new messages if you prefer
+
+// The Admin service interface
+service AdminService {
+  // Return the full list of servers (host, port, healthy, etc.)
+  rpc ListServers (google.protobuf.Empty)
+      returns (ListServersResponse);
+
+  // Update the health status of a server
+  rpc UpdateServerHealth (UpdateServerHealthRequest)
+      returns (google.protobuf.Empty);
+
+  // Request that the LB create a new server
+  rpc AddServer (google.protobuf.Empty)
+      returns (AddServerResponse);
+
+  // Request that the LB remove a specific server
+  rpc RemoveServer (RemoveServerRequest)
+      returns (google.protobuf.Empty);
+}
+
+// Response of ListServers
+message ListServersResponse {
+  repeated ServerInfo servers = 1;
+}
+
+// Info describing one server
+message ServerInfo {
+  string id   = 1;  // e.g. "127.0.0.1:50051"
+  string host = 2;  // e.g. "127.0.0.1"
+  uint32 port = 3;  // e.g. 50051
+  bool isHealthy = 4;
+}
+
+// Request message for UpdateServerHealth
+message UpdateServerHealthRequest {
+  string id       = 1;  // server's ID
+  bool isHealthy  = 2;  // new health status
+}
+
+// Response to AddServer
+message AddServerResponse {
+  string id = 1; // ID of the newly created server
+}
+
+// Request message for RemoveServer
+message RemoveServerRequest {
+  string id = 1;  // server's ID to remove
+}

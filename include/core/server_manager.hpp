@@ -11,6 +11,10 @@ public:
                  size_t min_servers,
                  size_t max_servers);
     
+    std::vector<std::shared_ptr<Server>> getAllServers();
+    std::shared_ptr<Server> findServerById(const std::string& id);
+    std::shared_ptr<Server> addServerAndReturn();
+    bool removeServerById(const std::string& id);
     bool addServer();
     bool removeServer();
     std::vector<std::shared_ptr<Server>> getActiveServers();

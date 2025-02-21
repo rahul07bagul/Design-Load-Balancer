@@ -13,9 +13,11 @@ git pull
 
 - Compile proto files
 
-- & "R:\C++\Projects\load-balancer\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe" -I=. --cpp_out=proto proto/load_balancer.proto 
+- & "R:\C++\Projects\load-balancer\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe" -I . --cpp_out=proto proto/load_balancer.proto 
+- & "R:\C++\Projects\load-balancer\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe" -I . --cpp_out=proto proto/admin_service.proto
 
-- & "R:\C++\Projects\load-balancer\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe" --cpp_out=. --grpc_out=. --plugin=protoc-gen-grpc="R:\C++\Projects\load-balancer\vcpkg\installed\x64-windows\tools\grpc\grpc_cpp_plugin.exe" load_balancer.proto
+- & "R:\C++\Projects\load-balancer\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe" --cpp_out=. --grpc_out=. --plugin=protoc-gen-grpc="R:\C++\Projects\load-balancer\vcpkg\installed\x64-windows\tools\grpc\grpc_cpp_plugin.exe" proto/load_balancer.proto
+- & "R:\C++\Projects\load-balancer\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe" --cpp_out=. --grpc_out=. --plugin=protoc-gen-grpc="R:\C++\Projects\load-balancer\vcpkg\installed\x64-windows\tools\grpc\grpc_cpp_plugin.exe" proto/admin_service.proto
 
 
 - Build

@@ -6,20 +6,14 @@
 #include "core/load_balancer.hpp"
 #include "core/server_manager.hpp"
 #include "strategies/round_robin.hpp"
-#include "monitoring/health_checker.hpp"
+#include "admin/admin_service.hpp"
 
-std::unique_ptr<HealthChecker> g_health_checker;
 std::unique_ptr<grpc::Server> g_server;
 bool g_shutting_down = false;
 
 void signalHandler(int signum) {
     std::cout << "\nShutdown signal received. Cleaning up..." << std::endl;
     g_shutting_down = true;
-
-    if (g_health_checker) {
-        std::cout << "Stopping health checker..." << std::endl;
-        g_health_checker->stop();
-    }
 
     if (g_server) {
         std::cout << "Shutting down gRPC server..." << std::endl;
@@ -115,6 +109,8 @@ int main(int argc, char** argv) {
         
         // Create load balancer service
         LoadBalancerService service(server_manager, strategy);
+
+        auto admin_service = std::make_unique<AdminService>(server_manager);
         
         // Setup and start gRPC server
         std::string server_address = std::string("0.0.0.0:") + std::to_string(config.lb_port);
@@ -122,26 +118,17 @@ int main(int argc, char** argv) {
         
         builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
         builder.RegisterService(&service);
+        builder.RegisterService(admin_service.get());
         
         g_server = builder.BuildAndStart();
         std::cout << "Load Balancer started at: " << server_address << std::endl;
         
-        // Create and start monitoring components
-        g_health_checker = std::make_unique<HealthChecker>(server_manager);
-        g_health_checker->start();
-        
         g_server->Wait();
-
-        if (!g_shutting_down) {
-            std::cout << "Server shutdown initiated. Cleaning up..." << std::endl;
-            g_health_checker->stop();
-        }
 
         std::cout << "Cleanup complete. Exiting." << std::endl;
         return 0;
     } catch (const std::exception& e) {
         std::cerr << "Fatal error: " << e.what() << std::endl;
-        if (g_health_checker) g_health_checker->stop();
         return 1;
     }
 }

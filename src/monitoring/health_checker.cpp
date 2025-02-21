@@ -1,83 +1,34 @@
-#include "monitoring/health_checker.hpp"
 #include <iostream>
+#include <thread>
+#include <chrono>
+#include <grpcpp/grpcpp.h>
+#include "proto/admin_service.grpc.pb.h"
+#include "monitoring/health_checker.hpp"
 
-HealthChecker::HealthChecker(std::shared_ptr<ServerManager> server_manager)
-    : server_manager_(server_manager)
-    , running_(false)
-    , wsaInitialized_(false) {
-    initializeWinSock();
-}
+using namespace std::chrono_literals;
 
-HealthChecker::~HealthChecker() {
-    stop();
-    if (wsaInitialized_) {
-        WSACleanup();
-    }
-}
+static bool running = true; // for stopping gracefully
 
-bool HealthChecker::initializeWinSock() {
-    WSADATA wsaData;
-    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (result != 0) {
-        std::cerr << "WSAStartup failed: " << result << std::endl;
-        return false;
-    }
-    wsaInitialized_ = true;
-    return true;
-}
+// A function that retrieves the server list from the AdminService
+std::vector<admin::ServerInfo> listAllServers(std::unique_ptr<admin::AdminService::Stub>& stub) {
+    grpc::ClientContext ctx;
+    google::protobuf::Empty empty;
+    admin::ListServersResponse response;
 
-void HealthChecker::start() {
-    bool expected = false;
-    if (running_.compare_exchange_strong(expected, true)) {
-        health_check_thread_ = std::make_unique<std::thread>(&HealthChecker::checkHealth, this);
-    }
-}
-
-void HealthChecker::stop() {
-    bool expected = true;
-    if (running_.compare_exchange_strong(expected, false) && health_check_thread_) {
-        if (health_check_thread_->joinable()) {
-            health_check_thread_->join();
-        }
-    }
-}
-
-void HealthChecker::checkHealth() {
-    while (running_) {
-        std::cout << "\n=== Health Check Started ===" << std::endl;
-        auto servers = server_manager_->getActiveServers();
-        
-        for (const auto& server : servers) {
-            bool was_healthy = server->isHealthy();
-            bool is_healthy = isServerResponding(server);
-            
-            std::cout << "Checking server " << server->getId() << ":\n"
-                     << "  Status: " << (is_healthy ? "Healthy" : "Unhealthy") << std::endl;
-            
-            if (was_healthy && !is_healthy) {
-                std::cout << "Server " << server->getId() << " is down" << std::endl;
-                server->setHealthStatus(false);
-                
-                if (server_manager_->addServer()) {
-                    std::cout << "Created new server to replace " << server->getId() << std::endl;
-                }
-            } else if (!was_healthy && is_healthy) {
-                std::cout << "Server " << server->getId() << " is back online" << std::endl;
-                server->setHealthStatus(true);
-            }
-        }
-        std::cout << "=== Health Check Completed ===" << std::endl;
-
-        std::this_thread::sleep_for(check_interval_);
-    }
-}
-
-bool HealthChecker::isServerResponding(const std::shared_ptr<Server>& server) {
-    if (!wsaInitialized_) {
-        std::cerr << "WinSock not initialized" << std::endl;
-        return false;
+    auto status = stub->ListServers(&ctx, empty, &response);
+    if (!status.ok()) {
+        std::cerr << "ListServers RPC failed: " << status.error_message() << std::endl;
+        return {};
     }
 
+    std::vector<admin::ServerInfo> result;
+    for (auto& server : *response.mutable_servers()) {
+        result.push_back(std::move(server));
+    }
+    return result;
+}
+
+bool isServerResponding(const std::string& host, uint16_t port) {
     SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sock == INVALID_SOCKET) {
         std::cerr << "Failed to create socket: " << WSAGetLastError() << std::endl;
@@ -85,7 +36,7 @@ bool HealthChecker::isServerResponding(const std::shared_ptr<Server>& server) {
     }
 
     // Set socket timeout
-    DWORD timeout = 5000; // Increased to 5 seconds
+    DWORD timeout = 5000; // 5 seconds
     setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
     setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout));
 
@@ -99,11 +50,11 @@ bool HealthChecker::isServerResponding(const std::shared_ptr<Server>& server) {
 
     sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(server->getPort());
-    
+    server_addr.sin_port = htons(port);
+
     // Convert address with error checking
-    if (inet_pton(AF_INET, server->getAddress().c_str(), &server_addr.sin_addr) != 1) {
-        std::cerr << "Invalid address: " << server->getAddress() << std::endl;
+    if (inet_pton(AF_INET, host.c_str(), &server_addr.sin_addr) != 1) {
+        std::cerr << "Invalid address: " << host << std::endl;
         closesocket(sock);
         return false;
     }
@@ -113,25 +64,25 @@ bool HealthChecker::isServerResponding(const std::shared_ptr<Server>& server) {
     if (result == SOCKET_ERROR) {
         int error = WSAGetLastError();
         if (error != WSAEWOULDBLOCK) {
-            std::cerr << "Connection failed for " << server->getId() 
-                     << ", error: " << error << std::endl;
+            std::cerr << "Connection failed for " << host << ":" << port
+                      << ", error: " << error << std::endl;
             closesocket(sock);
             return false;
         }
 
-        // Use select to wait for connection
+        // Use select to wait for the connection
         fd_set write_fds;
         FD_ZERO(&write_fds);
         FD_SET(sock, &write_fds);
 
         timeval tv;
-        tv.tv_sec = 5;  // 5 seconds timeout
+        tv.tv_sec = 5;  // 5 seconds
         tv.tv_usec = 0;
 
         result = select(0, nullptr, &write_fds, nullptr, &tv);
         if (result <= 0) {
-            std::cerr << "Select failed or timed out for " << server->getId() 
-                     << ", error: " << WSAGetLastError() << std::endl;
+            std::cerr << "Select failed or timed out for " << host << ":" << port
+                      << ", error: " << WSAGetLastError() << std::endl;
             closesocket(sock);
             return false;
         }
@@ -143,4 +94,82 @@ bool HealthChecker::isServerResponding(const std::shared_ptr<Server>& server) {
 
     closesocket(sock);
     return true;
+}
+
+// A function to update a server's health via AdminService
+void updateServerHealth(std::unique_ptr<admin::AdminService::Stub>& stub,
+                        const std::string& serverId,
+                        bool isHealthy) {
+    admin::UpdateServerHealthRequest req;
+    req.set_id(serverId);
+    req.set_ishealthy(isHealthy);
+
+    grpc::ClientContext ctx;
+    google::protobuf::Empty empty;
+    auto status = stub->UpdateServerHealth(&ctx, req, &empty);
+    if (!status.ok()) {
+        std::cerr << "UpdateServerHealth RPC failed for " << serverId
+                  << ": " << status.error_message() << std::endl;
+    }
+}
+
+// A function to add a new server via AdminService
+void addServer(std::unique_ptr<admin::AdminService::Stub>& stub) {
+    grpc::ClientContext ctx;
+    google::protobuf::Empty empty;
+    admin::AddServerResponse resp;
+    auto status = stub->AddServer(&ctx, empty, &resp);
+    if (!status.ok()) {
+        std::cerr << "AddServer RPC failed: " << status.error_message() << std::endl;
+    } else {
+        std::cout << "Created new server with ID " << resp.id() << std::endl;
+    }
+}
+
+int main(int argc, char** argv) {
+    // Parse command line args to get LB admin address, e.g. "127.0.0.1:50050"
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " <load_balancer_admin_address>\n"
+                  << " e.g.: health_checker_main 127.0.0.1:50050\n";
+        return 1;
+    }
+    std::string lb_admin_address = argv[1];
+
+    // 1) Create a channel and stub to talk to the AdminService
+    auto channel = grpc::CreateChannel(lb_admin_address, grpc::InsecureChannelCredentials());
+    auto stub = admin::AdminService::NewStub(channel);
+
+    while (running) {
+        std::cout << "\n=== External Health Check Started ===" << std::endl;
+
+        // 2) Get the full list of servers
+        auto servers = listAllServers(stub);
+
+        // 3) For each server, do the same 'isServerResponding' logic you already have.
+        for (auto& s : servers) {
+            bool currentHealth = s.ishealthy();
+            bool check = isServerResponding(s.host(), s.port()); // We'll define this next
+            
+            std::cout << "Checking server " << s.id() << ":\n"
+                      << "  Status: " << (check ? "Healthy" : "Unhealthy") << std::endl;
+
+            if (currentHealth && !check) {
+                // Mark as down
+                std::cout << "Server " << s.id() << " is down" << std::endl;
+                updateServerHealth(stub, s.id(), false);
+
+                // Possibly add a new server
+                addServer(stub);
+            } else if (!currentHealth && check) {
+                // Mark as healthy again
+                std::cout << "Server " << s.id() << " is back online" << std::endl;
+                updateServerHealth(stub, s.id(), true);
+            }
+        }
+
+        std::cout << "=== Health Check Completed ===" << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+    }
+
+    return 0;
 }
