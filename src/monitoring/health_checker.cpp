@@ -55,14 +55,14 @@ void HealthChecker::checkHealth() {
                      << "  Status: " << (is_healthy ? "Healthy" : "Unhealthy") << std::endl;
             
             if (was_healthy && !is_healthy) {
-                std::cout << "⚠️ Server " << server->getId() << " is down" << std::endl;
+                std::cout << "Server " << server->getId() << " is down" << std::endl;
                 server->setHealthStatus(false);
                 
                 if (server_manager_->addServer()) {
-                    std::cout << "✅ Created new server to replace " << server->getId() << std::endl;
+                    std::cout << "Created new server to replace " << server->getId() << std::endl;
                 }
             } else if (!was_healthy && is_healthy) {
-                std::cout << "✅ Server " << server->getId() << " is back online" << std::endl;
+                std::cout << "Server " << server->getId() << " is back online" << std::endl;
                 server->setHealthStatus(true);
             }
         }
