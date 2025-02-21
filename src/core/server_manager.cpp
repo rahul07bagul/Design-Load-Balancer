@@ -29,7 +29,7 @@ bool ServerManager::addServer() {
         return false;
     }
 
-    auto server = std::make_shared<Server>("localhost", next_port_);
+    auto server = std::make_shared<Server>("127.0.0.1", next_port_);
     
     std::string command = executable_path_ + " " + std::to_string(next_port_);
     HANDLE hProcess = CreateServerProcess(command);

@@ -80,6 +80,7 @@
         "stdfloat": "cpp",
         "strstream": "cpp",
         "csignal": "cpp",
-        "rope": "cpp"
+        "rope": "cpp",
+        "*.ipp": "cpp"
     }
 }

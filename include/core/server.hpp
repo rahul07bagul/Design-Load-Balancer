@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <cstdint>
+#include <windows.h>
 
 class Server {
 public:
@@ -10,10 +11,13 @@ public:
     std::string getId() const;
     bool isHealthy() const;
     void setHealthStatus(bool status);
+    DWORD getProcessId() const { return process_id_; }
+    void setProcessId(DWORD pid) { process_id_ = pid; }
 
 private:
     std::string host_;
     uint16_t port_;
     bool is_healthy_;
     std::string id_;
+    DWORD process_id_;
 };

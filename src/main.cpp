@@ -1,10 +1,31 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <csignal>
 #include <grpcpp/grpcpp.h>
 #include "core/load_balancer.hpp"
 #include "core/server_manager.hpp"
 #include "strategies/round_robin.hpp"
+#include "monitoring/health_checker.hpp"
+
+std::unique_ptr<HealthChecker> g_health_checker;
+std::unique_ptr<grpc::Server> g_server;
+bool g_shutting_down = false;
+
+void signalHandler(int signum) {
+    std::cout << "\nShutdown signal received. Cleaning up..." << std::endl;
+    g_shutting_down = true;
+
+    if (g_health_checker) {
+        std::cout << "Stopping health checker..." << std::endl;
+        g_health_checker->stop();
+    }
+
+    if (g_server) {
+        std::cout << "Shutting down gRPC server..." << std::endl;
+        g_server->Shutdown();
+    }
+}
 
 void printUsage(const char* programName) {
     std::cerr << "Usage: " << programName << " [options]\n"
@@ -30,26 +51,36 @@ Config parseArgs(int argc, char** argv) {
     for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         
-        if (arg == "--backend-path" && i + 1 < argc) {
-            config.backend_path = argv[++i];
-        } else if (arg == "--port" && i + 1 < argc) {
-            config.lb_port = std::stoi(argv[++i]);
-        } else if (arg == "--min-servers" && i + 1 < argc) {
-            config.min_servers = std::stoi(argv[++i]);
-        } else if (arg == "--max-servers" && i + 1 < argc) {
-            config.max_servers = std::stoi(argv[++i]);
-        } else if (arg == "--start-port" && i + 1 < argc) {
-            config.start_port = std::stoi(argv[++i]);
-        } else {
+        if (i + 1 >= argc && arg != "--help" && arg != "-h") {
+            std::cerr << "Error: Missing value for argument " << arg << std::endl;
             printUsage(argv[0]);
             exit(1);
         }
-    }
-    
-    if (config.backend_path.empty()) {
-        std::cerr << "Error: --backend-path is required\n";
-        printUsage(argv[0]);
-        exit(1);
+        
+        try {
+            if (arg == "--backend-path") {
+                config.backend_path = argv[++i];
+            } else if (arg == "--port") {
+                config.lb_port = static_cast<uint16_t>(std::stoi(argv[++i]));
+            } else if (arg == "--min-servers") {
+                config.min_servers = static_cast<size_t>(std::stoi(argv[++i]));
+            } else if (arg == "--max-servers") {
+                config.max_servers = static_cast<size_t>(std::stoi(argv[++i]));
+            } else if (arg == "--start-port") {
+                config.start_port = static_cast<uint16_t>(std::stoi(argv[++i]));
+            } else if (arg == "--help" || arg == "-h") {
+                printUsage(argv[0]);
+                exit(0);
+            } else {
+                std::cerr << "Unknown argument: " << arg << std::endl;
+                printUsage(argv[0]);
+                exit(1);
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Error parsing argument " << arg << ": " << e.what() << std::endl;
+            printUsage(argv[0]);
+            exit(1);
+        }
     }
     
     return config;
@@ -57,8 +88,19 @@ Config parseArgs(int argc, char** argv) {
 
 int main(int argc, char** argv) {
     try {
+        // Register signal handler
+        signal(SIGINT, signalHandler);
+        signal(SIGTERM, signalHandler);
+
         // Parse command line arguments
         Config config = parseArgs(argc, argv);
+        
+        std::cout << "Initializing load balancer with configuration:\n"
+                  << "  Backend path: " << config.backend_path << "\n"
+                  << "  Load balancer port: " << config.lb_port << "\n"
+                  << "  Start port: " << config.start_port << "\n"
+                  << "  Min servers: " << config.min_servers << "\n"
+                  << "  Max servers: " << config.max_servers << std::endl;
         
         // Create server manager
         auto server_manager = std::make_shared<ServerManager>(
@@ -78,26 +120,28 @@ int main(int argc, char** argv) {
         std::string server_address = std::string("0.0.0.0:") + std::to_string(config.lb_port);
         grpc::ServerBuilder builder;
         
-        // Add listening port to the server
         builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-        
-        // Register service
         builder.RegisterService(&service);
         
-        // Start the server
-        std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
+        g_server = builder.BuildAndStart();
         std::cout << "Load Balancer started at: " << server_address << std::endl;
-        std::cout << "Backend servers configuration:" << std::endl;
-        std::cout << "  - Number of servers: " << config.min_servers << " to " 
-                 << config.max_servers << std::endl;
-        std::cout << "  - Starting port: " << config.start_port << std::endl;
         
-        // Keep the server running
-        server->Wait();
+        // Create and start monitoring components
+        g_health_checker = std::make_unique<HealthChecker>(server_manager);
+        g_health_checker->start();
         
+        g_server->Wait();
+
+        if (!g_shutting_down) {
+            std::cout << "Server shutdown initiated. Cleaning up..." << std::endl;
+            g_health_checker->stop();
+        }
+
+        std::cout << "Cleanup complete. Exiting." << std::endl;
         return 0;
     } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << "Fatal error: " << e.what() << std::endl;
+        if (g_health_checker) g_health_checker->stop();
         return 1;
     }
 }

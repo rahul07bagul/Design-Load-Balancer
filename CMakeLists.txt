@@ -15,6 +15,8 @@ set(LIB_SOURCES
     src/core/server_manager.cpp
     src/core/load_balancer.cpp
     src/strategies/round_robin.cpp
+    src/monitoring/health_checker.cpp
+    # src/monitoring/resource_monitor.cpp
     proto/load_balancer.pb.cc
     proto/load_balancer.grpc.pb.cc
 )

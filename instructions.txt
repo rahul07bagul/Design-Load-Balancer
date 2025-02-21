@@ -20,7 +20,7 @@ git pull
 
 - Build
 
-- cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="R:/C++/Projects/load-balancer/vcpkg/scripts/buildsystems/vcpkg.cmake"
+- rmdir build && cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="R:/C++/Projects/load-balancer/vcpkg/scripts/buildsystems/vcpkg.cmake"
 - cmake --build build --config Release
 
 
