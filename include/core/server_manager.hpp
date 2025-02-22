@@ -15,7 +15,7 @@ public:
     std::shared_ptr<Server> findServerById(const std::string& id);
     std::shared_ptr<Server> addServerAndReturn();
     bool removeServerById(const std::string& id);
-    bool addServer();
+    std::shared_ptr<Server> addServer();
     bool removeServer();
     std::vector<std::shared_ptr<Server>> getActiveServers();
     

@@ -81,6 +81,7 @@
         "strstream": "cpp",
         "csignal": "cpp",
         "rope": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "*.inc": "cpp"
     }
 }

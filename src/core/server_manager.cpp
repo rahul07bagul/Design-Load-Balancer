@@ -38,20 +38,20 @@ std::shared_ptr<Server> ServerManager::findServerById(const std::string& id) {
     return nullptr;
 }
 
-std::shared_ptr<Server> ServerManager::addServerAndReturn() {
-    // Similar to addServer() logic, but returns the server
-    if (servers_.size() >= max_servers_) {
-        return nullptr;
-    }
-    auto server = std::make_shared<Server>("127.0.0.1", next_port_++);
-    std::string command = executable_path_ + " " + std::to_string(next_port_);
-    HANDLE hProcess = CreateServerProcess(command);
-    if (hProcess == NULL) {
-        return nullptr;
-    }
-    servers_.push_back(server);
-    return server;
-}
+// std::shared_ptr<Server> ServerManager::addServerAndReturn() {
+//     if (servers_.size() >= max_servers_) {
+//         return nullptr;
+//     }
+//     auto server = std::make_shared<Server>("127.0.0.1", next_port_);
+//     std::string command = executable_path_ + " " + std::to_string(next_port_);
+//     HANDLE hProcess = CreateServerProcess(command);
+//     if (hProcess == NULL) {
+//         return nullptr;
+//     }
+//     servers_.push_back(server);
+//     next_port_++;
+//     return server;
+// }
 
 bool ServerManager::removeServerById(const std::string& id) {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -67,23 +67,19 @@ bool ServerManager::removeServerById(const std::string& id) {
     return false;
 }
 
-bool ServerManager::addServer() {
-    std::lock_guard<std::mutex> lock(mutex_);
+std::shared_ptr<Server> ServerManager::addServer() {
     if (servers_.size() >= max_servers_) {
-        return false;
+        return nullptr;
     }
-
     auto server = std::make_shared<Server>("127.0.0.1", next_port_);
-    
     std::string command = executable_path_ + " " + std::to_string(next_port_);
     HANDLE hProcess = CreateServerProcess(command);
-    if (hProcess != NULL) {
-        servers_.push_back(server);
-        next_port_++;
-        return true;
+    if (hProcess == NULL) {
+        return nullptr;
     }
-    
-    return false;
+    servers_.push_back(server);
+    next_port_++;
+    return server;
 }
 
 bool ServerManager::removeServer() {

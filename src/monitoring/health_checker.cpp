@@ -7,9 +7,8 @@
 
 using namespace std::chrono_literals;
 
-static bool running = true; // for stopping gracefully
+static bool running = true;
 
-// A function that retrieves the server list from the AdminService
 std::vector<admin::ServerInfo> listAllServers(std::unique_ptr<admin::AdminService::Stub>& stub) {
     grpc::ClientContext ctx;
     google::protobuf::Empty empty;

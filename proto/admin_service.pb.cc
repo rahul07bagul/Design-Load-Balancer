@@ -64,6 +64,8 @@ inline constexpr ServerInfo::Impl_::Impl_(
             ::_pbi::ConstantInitialized()),
         port_{0u},
         ishealthy_{false},
+        last_health_check_unix_seconds_{::int64_t{0}},
+        request_count_{::int64_t{0}},
         _cached_size_{0} {}
 
 template <typename>
@@ -193,6 +195,8 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::admin::ServerInfo, _impl_.host_),
         PROTOBUF_FIELD_OFFSET(::admin::ServerInfo, _impl_.port_),
         PROTOBUF_FIELD_OFFSET(::admin::ServerInfo, _impl_.ishealthy_),
+        PROTOBUF_FIELD_OFFSET(::admin::ServerInfo, _impl_.last_health_check_unix_seconds_),
+        PROTOBUF_FIELD_OFFSET(::admin::ServerInfo, _impl_.request_count_),
         ~0u,  // no _has_bits_
         PROTOBUF_FIELD_OFFSET(::admin::UpdateServerHealthRequest, _internal_metadata_),
         ~0u,  // no _extensions_
@@ -227,9 +231,9 @@ static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, -1, -1, sizeof(::admin::ListServersResponse)},
         {9, -1, -1, sizeof(::admin::ServerInfo)},
-        {21, -1, -1, sizeof(::admin::UpdateServerHealthRequest)},
-        {31, -1, -1, sizeof(::admin::AddServerResponse)},
-        {40, -1, -1, sizeof(::admin::RemoveServerRequest)},
+        {23, -1, -1, sizeof(::admin::UpdateServerHealthRequest)},
+        {33, -1, -1, sizeof(::admin::AddServerResponse)},
+        {42, -1, -1, sizeof(::admin::RemoveServerRequest)},
 };
 static const ::_pb::Message* const file_default_instances[] = {
     &::admin::_ListServersResponse_default_instance_._instance,
@@ -243,19 +247,21 @@ const char descriptor_table_protodef_proto_2fadmin_5fservice_2eproto[] ABSL_ATTR
     "\n\031proto/admin_service.proto\022\005admin\032\033goog"
     "le/protobuf/empty.proto\"9\n\023ListServersRe"
     "sponse\022\"\n\007servers\030\001 \003(\0132\021.admin.ServerIn"
-    "fo\"G\n\nServerInfo\022\n\n\002id\030\001 \001(\t\022\014\n\004host\030\002 \001"
-    "(\t\022\014\n\004port\030\003 \001(\r\022\021\n\tisHealthy\030\004 \001(\010\":\n\031U"
-    "pdateServerHealthRequest\022\n\n\002id\030\001 \001(\t\022\021\n\t"
-    "isHealthy\030\002 \001(\010\"\037\n\021AddServerResponse\022\n\n\002"
-    "id\030\001 \001(\t\"!\n\023RemoveServerRequest\022\n\n\002id\030\001 "
-    "\001(\t2\244\002\n\014AdminService\022A\n\013ListServers\022\026.go"
-    "ogle.protobuf.Empty\032\032.admin.ListServersR"
-    "esponse\022N\n\022UpdateServerHealth\022 .admin.Up"
-    "dateServerHealthRequest\032\026.google.protobu"
-    "f.Empty\022=\n\tAddServer\022\026.google.protobuf.E"
-    "mpty\032\030.admin.AddServerResponse\022B\n\014Remove"
-    "Server\022\032.admin.RemoveServerRequest\032\026.goo"
-    "gle.protobuf.Emptyb\006proto3"
+    "fo\"\206\001\n\nServerInfo\022\n\n\002id\030\001 \001(\t\022\014\n\004host\030\002 "
+    "\001(\t\022\014\n\004port\030\003 \001(\r\022\021\n\tisHealthy\030\004 \001(\010\022&\n\036"
+    "last_health_check_unix_seconds\030\005 \001(\003\022\025\n\r"
+    "request_count\030\006 \001(\003\":\n\031UpdateServerHealt"
+    "hRequest\022\n\n\002id\030\001 \001(\t\022\021\n\tisHealthy\030\002 \001(\010\""
+    "\037\n\021AddServerResponse\022\n\n\002id\030\001 \001(\t\"!\n\023Remo"
+    "veServerRequest\022\n\n\002id\030\001 \001(\t2\244\002\n\014AdminSer"
+    "vice\022A\n\013ListServers\022\026.google.protobuf.Em"
+    "pty\032\032.admin.ListServersResponse\022N\n\022Updat"
+    "eServerHealth\022 .admin.UpdateServerHealth"
+    "Request\032\026.google.protobuf.Empty\022=\n\tAddSe"
+    "rver\022\026.google.protobuf.Empty\032\030.admin.Add"
+    "ServerResponse\022B\n\014RemoveServer\022\032.admin.R"
+    "emoveServerRequest\032\026.google.protobuf.Emp"
+    "tyb\006proto3"
 };
 static const ::_pbi::DescriptorTable* const descriptor_table_proto_2fadmin_5fservice_2eproto_deps[1] =
     {
@@ -265,7 +271,7 @@ static ::absl::once_flag descriptor_table_proto_2fadmin_5fservice_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_proto_2fadmin_5fservice_2eproto = {
     false,
     false,
-    626,
+    690,
     descriptor_table_protodef_proto_2fadmin_5fservice_2eproto,
     "proto/admin_service.proto",
     &descriptor_table_proto_2fadmin_5fservice_2eproto_once,
@@ -560,9 +566,9 @@ ServerInfo::ServerInfo(
                offsetof(Impl_, port_),
            reinterpret_cast<const char *>(&from._impl_) +
                offsetof(Impl_, port_),
-           offsetof(Impl_, ishealthy_) -
+           offsetof(Impl_, request_count_) -
                offsetof(Impl_, port_) +
-               sizeof(Impl_::ishealthy_));
+               sizeof(Impl_::request_count_));
 
   // @@protoc_insertion_point(copy_constructor:admin.ServerInfo)
 }
@@ -578,9 +584,9 @@ inline void ServerInfo::SharedCtor(::_pb::Arena* arena) {
   ::memset(reinterpret_cast<char *>(&_impl_) +
                offsetof(Impl_, port_),
            0,
-           offsetof(Impl_, ishealthy_) -
+           offsetof(Impl_, request_count_) -
                offsetof(Impl_, port_) +
-               sizeof(Impl_::ishealthy_));
+               sizeof(Impl_::request_count_));
 }
 ServerInfo::~ServerInfo() {
   // @@protoc_insertion_point(destructor:admin.ServerInfo)
@@ -631,15 +637,15 @@ const ::google::protobuf::internal::ClassData* ServerInfo::GetClassData() const 
   return _class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 4, 0, 31, 2> ServerInfo::_table_ = {
+const ::_pbi::TcParseTable<3, 6, 0, 31, 2> ServerInfo::_table_ = {
   {
     0,  // no _has_bits_
     0, // no _extensions_
-    4, 24,  // max_field_number, fast_idx_mask
+    6, 56,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967280,  // skipmap
+    4294967232,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    4,  // num_field_entries
+    6,  // num_field_entries
     0,  // num_aux_entries
     offsetof(decltype(_table_), field_names),  // no aux_entries
     _class_data_.base(),
@@ -649,9 +655,7 @@ const ::_pbi::TcParseTable<2, 4, 0, 31, 2> ServerInfo::_table_ = {
     ::_pbi::TcParser::GetTable<::admin::ServerInfo>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // bool isHealthy = 4;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(ServerInfo, _impl_.ishealthy_), 63>(),
-     {32, 63, 0, PROTOBUF_FIELD_OFFSET(ServerInfo, _impl_.ishealthy_)}},
+    {::_pbi::TcParser::MiniParse, {}},
     // string id = 1;
     {::_pbi::TcParser::FastUS1,
      {10, 63, 0, PROTOBUF_FIELD_OFFSET(ServerInfo, _impl_.id_)}},
@@ -661,6 +665,16 @@ const ::_pbi::TcParseTable<2, 4, 0, 31, 2> ServerInfo::_table_ = {
     // uint32 port = 3;
     {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ServerInfo, _impl_.port_), 63>(),
      {24, 63, 0, PROTOBUF_FIELD_OFFSET(ServerInfo, _impl_.port_)}},
+    // bool isHealthy = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(ServerInfo, _impl_.ishealthy_), 63>(),
+     {32, 63, 0, PROTOBUF_FIELD_OFFSET(ServerInfo, _impl_.ishealthy_)}},
+    // int64 last_health_check_unix_seconds = 5;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(ServerInfo, _impl_.last_health_check_unix_seconds_), 63>(),
+     {40, 63, 0, PROTOBUF_FIELD_OFFSET(ServerInfo, _impl_.last_health_check_unix_seconds_)}},
+    // int64 request_count = 6;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(ServerInfo, _impl_.request_count_), 63>(),
+     {48, 63, 0, PROTOBUF_FIELD_OFFSET(ServerInfo, _impl_.request_count_)}},
+    {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
@@ -676,6 +690,12 @@ const ::_pbi::TcParseTable<2, 4, 0, 31, 2> ServerInfo::_table_ = {
     // bool isHealthy = 4;
     {PROTOBUF_FIELD_OFFSET(ServerInfo, _impl_.ishealthy_), 0, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kBool)},
+    // int64 last_health_check_unix_seconds = 5;
+    {PROTOBUF_FIELD_OFFSET(ServerInfo, _impl_.last_health_check_unix_seconds_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kInt64)},
+    // int64 request_count = 6;
+    {PROTOBUF_FIELD_OFFSET(ServerInfo, _impl_.request_count_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kInt64)},
   }},
   // no aux_entries
   {{
@@ -696,8 +716,8 @@ PROTOBUF_NOINLINE void ServerInfo::Clear() {
   _impl_.id_.ClearToEmpty();
   _impl_.host_.ClearToEmpty();
   ::memset(&_impl_.port_, 0, static_cast<::size_t>(
-      reinterpret_cast<char*>(&_impl_.ishealthy_) -
-      reinterpret_cast<char*>(&_impl_.port_)) + sizeof(_impl_.ishealthy_));
+      reinterpret_cast<char*>(&_impl_.request_count_) -
+      reinterpret_cast<char*>(&_impl_.port_)) + sizeof(_impl_.request_count_));
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
 
@@ -746,6 +766,20 @@ PROTOBUF_NOINLINE void ServerInfo::Clear() {
                 4, this_._internal_ishealthy(), target);
           }
 
+          // int64 last_health_check_unix_seconds = 5;
+          if (this_._internal_last_health_check_unix_seconds() != 0) {
+            target = ::google::protobuf::internal::WireFormatLite::
+                WriteInt64ToArrayWithField<5>(
+                    stream, this_._internal_last_health_check_unix_seconds(), target);
+          }
+
+          // int64 request_count = 6;
+          if (this_._internal_request_count() != 0) {
+            target = ::google::protobuf::internal::WireFormatLite::
+                WriteInt64ToArrayWithField<6>(
+                    stream, this_._internal_request_count(), target);
+          }
+
           if (PROTOBUF_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
             target =
                 ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -790,6 +824,16 @@ PROTOBUF_NOINLINE void ServerInfo::Clear() {
             if (this_._internal_ishealthy() != 0) {
               total_size += 2;
             }
+            // int64 last_health_check_unix_seconds = 5;
+            if (this_._internal_last_health_check_unix_seconds() != 0) {
+              total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
+                  this_._internal_last_health_check_unix_seconds());
+            }
+            // int64 request_count = 6;
+            if (this_._internal_request_count() != 0) {
+              total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(
+                  this_._internal_request_count());
+            }
           }
           return this_.MaybeComputeUnknownFieldsSize(total_size,
                                                      &this_._impl_._cached_size_);
@@ -815,6 +859,12 @@ void ServerInfo::MergeImpl(::google::protobuf::MessageLite& to_msg, const ::goog
   if (from._internal_ishealthy() != 0) {
     _this->_impl_.ishealthy_ = from._impl_.ishealthy_;
   }
+  if (from._internal_last_health_check_unix_seconds() != 0) {
+    _this->_impl_.last_health_check_unix_seconds_ = from._impl_.last_health_check_unix_seconds_;
+  }
+  if (from._internal_request_count() != 0) {
+    _this->_impl_.request_count_ = from._impl_.request_count_;
+  }
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -834,8 +884,8 @@ void ServerInfo::InternalSwap(ServerInfo* PROTOBUF_RESTRICT other) {
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.id_, &other->_impl_.id_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.host_, &other->_impl_.host_, arena);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(ServerInfo, _impl_.ishealthy_)
-      + sizeof(ServerInfo::_impl_.ishealthy_)
+      PROTOBUF_FIELD_OFFSET(ServerInfo, _impl_.request_count_)
+      + sizeof(ServerInfo::_impl_.request_count_)
       - PROTOBUF_FIELD_OFFSET(ServerInfo, _impl_.port_)>(
           reinterpret_cast<char*>(&_impl_.port_),
           reinterpret_cast<char*>(&other->_impl_.port_));

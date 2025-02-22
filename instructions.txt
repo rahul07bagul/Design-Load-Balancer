@@ -19,6 +19,8 @@ git pull
 - & "R:\C++\Projects\load-balancer\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe" --cpp_out=. --grpc_out=. --plugin=protoc-gen-grpc="R:\C++\Projects\load-balancer\vcpkg\installed\x64-windows\tools\grpc\grpc_cpp_plugin.exe" proto/load_balancer.proto
 - & "R:\C++\Projects\load-balancer\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe" --cpp_out=. --grpc_out=. --plugin=protoc-gen-grpc="R:\C++\Projects\load-balancer\vcpkg\installed\x64-windows\tools\grpc\grpc_cpp_plugin.exe" proto/admin_service.proto
 
+- Javascript protoc
+- & "R:\C++\Projects\load-balancer\vcpkg\installed\x64-windows\tools\protobuf\protoc.exe" -I=. proto/admin_service.proto --js_out=import_style=commonjs,binary:./generated  --grpc-web_out=import_style=commonjs,mode=grpcwebtext:./generated
 
 - Build
 

@@ -1,4 +1,4 @@
-#include "admin/admin_service.hpp"
+#include "api/admin_service.hpp"
 
 AdminService::AdminService(std::shared_ptr<ServerManager> server_manager)
     : server_manager_(std::move(server_manager)) {}
@@ -16,6 +16,11 @@ AdminService::AdminService(std::shared_ptr<ServerManager> server_manager)
         info->set_host(server->getAddress());
         info->set_port(server->getPort());
         info->set_ishealthy(server->isHealthy());
+        auto tp = server->getLastHealthCheckTime();
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(
+            tp.time_since_epoch());
+        info->set_last_health_check_unix_seconds(duration.count());
+        info->set_request_count(server->getRequestCount());
     }
 
     return ::grpc::Status::OK;
@@ -42,19 +47,12 @@ AdminService::AdminService(std::shared_ptr<ServerManager> server_manager)
     const ::google::protobuf::Empty* request,
     admin::AddServerResponse* response)
 {
-    bool success = server_manager_->addServer();
-    if (!success) {
+    auto latestServer = server_manager_->addServer();
+    if (!latestServer) {
         return ::grpc::Status(::grpc::StatusCode::RESOURCE_EXHAUSTED,
                               "Max servers reached or cannot add");
     }
-    // If you want the ID of the newly created server, 
-    // you might have server_manager_->addServer() return the shared_ptr<Server> 
-    // or you could track the last one created.
-    // For example:
-    auto latestServer = server_manager_->addServerAndReturn();
-    if (latestServer) {
-        response->set_id(latestServer->getId());
-    }
+    response->set_id(latestServer->getId());
     return ::grpc::Status::OK;
 }
 

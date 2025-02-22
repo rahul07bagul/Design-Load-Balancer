@@ -3,13 +3,17 @@
 #include <string>
 #include <csignal>
 #include <grpcpp/grpcpp.h>
+#include <thread> 
+
 #include "core/load_balancer.hpp"
 #include "core/server_manager.hpp"
 #include "strategies/round_robin.hpp"
-#include "admin/admin_service.hpp"
+#include "api/admin_service.hpp"
+#include "api/crow_service.hpp"
 
 std::unique_ptr<grpc::Server> g_server;
 bool g_shutting_down = false;
+std::shared_ptr<ServerManager> server_manager;
 
 void signalHandler(int signum) {
     std::cout << "\nShutdown signal received. Cleaning up..." << std::endl;
@@ -97,7 +101,7 @@ int main(int argc, char** argv) {
                   << "  Max servers: " << config.max_servers << std::endl;
         
         // Create server manager
-        auto server_manager = std::make_shared<ServerManager>(
+        server_manager = std::make_shared<ServerManager>(
             config.backend_path,
             config.start_port,
             config.min_servers,
@@ -111,6 +115,8 @@ int main(int argc, char** argv) {
         LoadBalancerService service(server_manager, strategy);
 
         auto admin_service = std::make_unique<AdminService>(server_manager);
+
+        std::thread crowThread(runCrowServer, server_manager);
         
         // Setup and start gRPC server
         std::string server_address = std::string("0.0.0.0:") + std::to_string(config.lb_port);

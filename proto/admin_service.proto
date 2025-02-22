@@ -36,6 +36,8 @@ message ServerInfo {
   string host = 2;  // e.g. "127.0.0.1"
   uint32 port = 3;  // e.g. 50051
   bool isHealthy = 4;
+  int64 last_health_check_unix_seconds = 5;
+  int64 request_count = 6;
 }
 
 // Request message for UpdateServerHealth

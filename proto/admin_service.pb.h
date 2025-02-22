@@ -439,6 +439,8 @@ class ServerInfo final : public ::google::protobuf::Message
     kHostFieldNumber = 2,
     kPortFieldNumber = 3,
     kIsHealthyFieldNumber = 4,
+    kLastHealthCheckUnixSecondsFieldNumber = 5,
+    kRequestCountFieldNumber = 6,
   };
   // string id = 1;
   void clear_id() ;
@@ -492,12 +494,32 @@ class ServerInfo final : public ::google::protobuf::Message
   void _internal_set_ishealthy(bool value);
 
   public:
+  // int64 last_health_check_unix_seconds = 5;
+  void clear_last_health_check_unix_seconds() ;
+  ::int64_t last_health_check_unix_seconds() const;
+  void set_last_health_check_unix_seconds(::int64_t value);
+
+  private:
+  ::int64_t _internal_last_health_check_unix_seconds() const;
+  void _internal_set_last_health_check_unix_seconds(::int64_t value);
+
+  public:
+  // int64 request_count = 6;
+  void clear_request_count() ;
+  ::int64_t request_count() const;
+  void set_request_count(::int64_t value);
+
+  private:
+  ::int64_t _internal_request_count() const;
+  void _internal_set_request_count(::int64_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:admin.ServerInfo)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
-      2, 4, 0,
+      3, 6, 0,
       31, 2>
       _table_;
 
@@ -519,6 +541,8 @@ class ServerInfo final : public ::google::protobuf::Message
     ::google::protobuf::internal::ArenaStringPtr host_;
     ::uint32_t port_;
     bool ishealthy_;
+    ::int64_t last_health_check_unix_seconds_;
+    ::int64_t request_count_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -1322,6 +1346,50 @@ inline bool ServerInfo::_internal_ishealthy() const {
 inline void ServerInfo::_internal_set_ishealthy(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.ishealthy_ = value;
+}
+
+// int64 last_health_check_unix_seconds = 5;
+inline void ServerInfo::clear_last_health_check_unix_seconds() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.last_health_check_unix_seconds_ = ::int64_t{0};
+}
+inline ::int64_t ServerInfo::last_health_check_unix_seconds() const {
+  // @@protoc_insertion_point(field_get:admin.ServerInfo.last_health_check_unix_seconds)
+  return _internal_last_health_check_unix_seconds();
+}
+inline void ServerInfo::set_last_health_check_unix_seconds(::int64_t value) {
+  _internal_set_last_health_check_unix_seconds(value);
+  // @@protoc_insertion_point(field_set:admin.ServerInfo.last_health_check_unix_seconds)
+}
+inline ::int64_t ServerInfo::_internal_last_health_check_unix_seconds() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.last_health_check_unix_seconds_;
+}
+inline void ServerInfo::_internal_set_last_health_check_unix_seconds(::int64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.last_health_check_unix_seconds_ = value;
+}
+
+// int64 request_count = 6;
+inline void ServerInfo::clear_request_count() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.request_count_ = ::int64_t{0};
+}
+inline ::int64_t ServerInfo::request_count() const {
+  // @@protoc_insertion_point(field_get:admin.ServerInfo.request_count)
+  return _internal_request_count();
+}
+inline void ServerInfo::set_request_count(::int64_t value) {
+  _internal_set_request_count(value);
+  // @@protoc_insertion_point(field_set:admin.ServerInfo.request_count)
+}
+inline ::int64_t ServerInfo::_internal_request_count() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.request_count_;
+}
+inline void ServerInfo::_internal_set_request_count(::int64_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.request_count_ = value;
 }
 
 // -------------------------------------------------------------------

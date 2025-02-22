@@ -19,6 +19,8 @@ grpc::Status LoadBalancerService::HandleRequest(
         return grpc::Status(grpc::StatusCode::UNAVAILABLE, "No servers available");
     }
 
+    selected_server->incrementRequestCount();
+    
     // Create client and forward request to selected server
     std::string server_address = selected_server->getAddress() + ":" + 
                                 std::to_string(selected_server->getPort());
