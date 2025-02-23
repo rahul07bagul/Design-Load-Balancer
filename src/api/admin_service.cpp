@@ -31,7 +31,6 @@ AdminService::AdminService(std::shared_ptr<ServerManager> server_manager)
     const admin::UpdateServerHealthRequest* request,
     ::google::protobuf::Empty* response)
 {
-    // If you have some method to find a server by ID, do that here:
     auto server = server_manager_->findServerById(request->id()); 
     if (!server) {
         return ::grpc::Status(::grpc::StatusCode::NOT_FOUND,
@@ -61,7 +60,6 @@ AdminService::AdminService(std::shared_ptr<ServerManager> server_manager)
     const admin::RemoveServerRequest* request,
     ::google::protobuf::Empty* response)
 {
-    // For removing by ID, we might need a new method like removeServerById()
     bool success = server_manager_->removeServerById(request->id());
     if (!success) {
         return ::grpc::Status(::grpc::StatusCode::NOT_FOUND,

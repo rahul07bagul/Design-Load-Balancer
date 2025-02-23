@@ -3,6 +3,7 @@
 #include <memory>
 #include <mutex>
 #include "core/server.hpp"
+#include <iostream>
 
 class ServerManager {
 public:
@@ -13,10 +14,8 @@ public:
     
     std::vector<std::shared_ptr<Server>> getAllServers();
     std::shared_ptr<Server> findServerById(const std::string& id);
-    std::shared_ptr<Server> addServerAndReturn();
     bool removeServerById(const std::string& id);
     std::shared_ptr<Server> addServer();
-    bool removeServer();
     std::vector<std::shared_ptr<Server>> getActiveServers();
     
 private:

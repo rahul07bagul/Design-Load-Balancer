@@ -47,6 +47,7 @@ void runCrowServer(std::shared_ptr<ServerManager> server_manager) {
             }
 
             std::string server_id = body["id"];
+            std::cout<<"Removing server with id: "<<server_id<<std::endl;
             if (!server_manager->removeServerById(server_id)) {
                 return crow::response(404, R"({"error": "Server not found or minimum servers reached"})");
             }

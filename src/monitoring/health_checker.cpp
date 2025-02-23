@@ -95,7 +95,7 @@ bool isServerResponding(const std::string& host, uint16_t port) {
     return true;
 }
 
-// A function to update a server's health via AdminService
+
 void updateServerHealth(std::unique_ptr<admin::AdminService::Stub>& stub,
                         const std::string& serverId,
                         bool isHealthy) {
@@ -112,7 +112,7 @@ void updateServerHealth(std::unique_ptr<admin::AdminService::Stub>& stub,
     }
 }
 
-// A function to add a new server via AdminService
+
 void addServer(std::unique_ptr<admin::AdminService::Stub>& stub) {
     grpc::ClientContext ctx;
     google::protobuf::Empty empty;
@@ -126,7 +126,6 @@ void addServer(std::unique_ptr<admin::AdminService::Stub>& stub) {
 }
 
 int main(int argc, char** argv) {
-    // Parse command line args to get LB admin address, e.g. "127.0.0.1:50050"
     if (argc < 2) {
         std::cerr << "Usage: " << argv[0] << " <load_balancer_admin_address>\n"
                   << " e.g.: health_checker_main 127.0.0.1:50050\n";
@@ -134,33 +133,27 @@ int main(int argc, char** argv) {
     }
     std::string lb_admin_address = argv[1];
 
-    // 1) Create a channel and stub to talk to the AdminService
     auto channel = grpc::CreateChannel(lb_admin_address, grpc::InsecureChannelCredentials());
     auto stub = admin::AdminService::NewStub(channel);
 
     while (running) {
         std::cout << "\n=== External Health Check Started ===" << std::endl;
 
-        // 2) Get the full list of servers
         auto servers = listAllServers(stub);
 
-        // 3) For each server, do the same 'isServerResponding' logic you already have.
         for (auto& s : servers) {
             bool currentHealth = s.ishealthy();
-            bool check = isServerResponding(s.host(), s.port()); // We'll define this next
+            bool check = isServerResponding(s.host(), s.port());
             
             std::cout << "Checking server " << s.id() << ":\n"
                       << "  Status: " << (check ? "Healthy" : "Unhealthy") << std::endl;
 
             if (currentHealth && !check) {
-                // Mark as down
                 std::cout << "Server " << s.id() << " is down" << std::endl;
                 updateServerHealth(stub, s.id(), false);
 
-                // Possibly add a new server
                 addServer(stub);
             } else if (!currentHealth && check) {
-                // Mark as healthy again
                 std::cout << "Server " << s.id() << " is back online" << std::endl;
                 updateServerHealth(stub, s.id(), true);
             }

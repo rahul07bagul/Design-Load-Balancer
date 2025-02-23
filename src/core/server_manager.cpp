@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-// Forward declaration
 static HANDLE CreateServerProcess(const std::string& command);
 
 ServerManager::ServerManager(const std::string& executable_path,
@@ -17,7 +16,6 @@ ServerManager::ServerManager(const std::string& executable_path,
     , min_servers_(min_servers)
     , max_servers_(max_servers) {
     
-    // Start minimum number of servers
     for (size_t i = 0; i < min_servers_; ++i) {
         addServer();
     }
@@ -37,21 +35,6 @@ std::shared_ptr<Server> ServerManager::findServerById(const std::string& id) {
     }
     return nullptr;
 }
-
-// std::shared_ptr<Server> ServerManager::addServerAndReturn() {
-//     if (servers_.size() >= max_servers_) {
-//         return nullptr;
-//     }
-//     auto server = std::make_shared<Server>("127.0.0.1", next_port_);
-//     std::string command = executable_path_ + " " + std::to_string(next_port_);
-//     HANDLE hProcess = CreateServerProcess(command);
-//     if (hProcess == NULL) {
-//         return nullptr;
-//     }
-//     servers_.push_back(server);
-//     next_port_++;
-//     return server;
-// }
 
 bool ServerManager::removeServerById(const std::string& id) {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -80,16 +63,6 @@ std::shared_ptr<Server> ServerManager::addServer() {
     servers_.push_back(server);
     next_port_++;
     return server;
-}
-
-bool ServerManager::removeServer() {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (servers_.size() <= min_servers_) {
-        return false;
-    }
-
-    servers_.pop_back();
-    return true;
 }
 
 std::vector<std::shared_ptr<Server>> ServerManager::getActiveServers() {
