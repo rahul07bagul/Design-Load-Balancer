@@ -37,6 +37,10 @@ set(LIB_SOURCES
 
     src/api/admin_service.cpp
     src/api/crow_service.cpp
+
+    #src/core/process/process.cpp
+    src/core/process/process_factory.cpp
+    src/core/process/windows_process.cpp
 )
 
 include_directories(

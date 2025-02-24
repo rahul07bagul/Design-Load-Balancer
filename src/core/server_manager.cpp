@@ -43,6 +43,9 @@ bool ServerManager::removeServerById(const std::string& id) {
     }
     for (auto it = servers_.begin(); it != servers_.end(); ++it) {
         if ((*it)->getId() == id) {
+            if((*it)->getProcess() != nullptr) {
+                (*it)->getProcess()->terminate();
+            }
             servers_.erase(it);
             return true;
         }
@@ -56,10 +59,11 @@ std::shared_ptr<Server> ServerManager::addServer() {
     }
     auto server = std::make_shared<Server>("127.0.0.1", next_port_);
     std::string command = executable_path_ + " " + std::to_string(next_port_);
-    HANDLE hProcess = CreateServerProcess(command);
-    if (hProcess == NULL) {
+    auto process = ProcessFactory::createProcess();
+    if (!process->start(command)) {
         return nullptr;
     }
+    server->setProcess(std::move(process));
     servers_.push_back(server);
     next_port_++;
     return server;
@@ -76,32 +80,31 @@ std::vector<std::shared_ptr<Server>> ServerManager::getActiveServers() {
     return active_servers;
 }
 
-static HANDLE CreateServerProcess(const std::string& command) {
-    STARTUPINFOW siw;
-    PROCESS_INFORMATION pi;
+// static HANDLE CreateServerProcess(const std::string& command) {
+//     STARTUPINFOW siw;
+//     PROCESS_INFORMATION pi;
 
-    ZeroMemory(&siw, sizeof(siw));
-    siw.cb = sizeof(siw);
-    ZeroMemory(&pi, sizeof(pi));
+//     ZeroMemory(&siw, sizeof(siw));
+//     siw.cb = sizeof(siw);
+//     ZeroMemory(&pi, sizeof(pi));
 
-    // Convert std::string command to std::wstring
-    int size_needed = MultiByteToWideChar(CP_UTF8, 0, command.c_str(), -1, NULL, 0);
-    std::wstring wCommand(size_needed, 0);
-    MultiByteToWideChar(CP_UTF8, 0, command.c_str(), -1, &wCommand[0], size_needed);
+//     int size_needed = MultiByteToWideChar(CP_UTF8, 0, command.c_str(), -1, NULL, 0);
+//     std::wstring wCommand(size_needed, 0);
+//     MultiByteToWideChar(CP_UTF8, 0, command.c_str(), -1, &wCommand[0], size_needed);
 
-    if (!CreateProcessW(nullptr,      // No module name (use command line)
-        &wCommand[0],                 // Command line as wide string
-        nullptr,                      // Process handle not inheritable
-        nullptr,                      // Thread handle not inheritable
-        FALSE,                        // Set handle inheritance to FALSE
-        0,                           // No creation flags
-        nullptr,                     // Use parent's environment block
-        nullptr,                     // Use parent's starting directory 
-        &siw,                        // Pointer to STARTUPINFOW structure
-        &pi)) {                      // Pointer to PROCESS_INFORMATION structure
-        throw std::runtime_error("CreateProcess failed");
-    }
+//     if (!CreateProcessW(nullptr,      // No module name (use command line)
+//         &wCommand[0],                 // Command line as wide string
+//         nullptr,                      // Process handle not inheritable
+//         nullptr,                      // Thread handle not inheritable
+//         FALSE,                        // Set handle inheritance to FALSE
+//         0,                           // No creation flags
+//         nullptr,                     // Use parent's environment block
+//         nullptr,                     // Use parent's starting directory 
+//         &siw,                        // Pointer to STARTUPINFOW structure
+//         &pi)) {                      // Pointer to PROCESS_INFORMATION structure
+//         throw std::runtime_error("CreateProcess failed");
+//     }
 
-    CloseHandle(pi.hThread);
-    return pi.hProcess;
-}
+//     CloseHandle(pi.hThread);
+//     return pi.hProcess;
+// }

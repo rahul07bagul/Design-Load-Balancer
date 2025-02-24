@@ -2,8 +2,9 @@
 #include <vector>
 #include <memory>
 #include <mutex>
-#include "core/server.hpp"
 #include <iostream>
+#include "core/server.hpp"
+#include "core/process/process_factory.hpp"
 
 class ServerManager {
 public:
