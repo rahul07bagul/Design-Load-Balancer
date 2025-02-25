@@ -1,13 +1,9 @@
 #include "core/process/windows_process.hpp"
 #include <stdexcept>
 
-WindowsProcess::WindowsProcess()
-    : process_handle_(nullptr)
-{
-}
+WindowsProcess::WindowsProcess() : process_handle_(nullptr){}
 
-WindowsProcess::~WindowsProcess()
-{
+WindowsProcess::~WindowsProcess(){
     if (process_handle_ != nullptr) {
         CloseHandle(process_handle_);
         process_handle_ = nullptr;
@@ -30,7 +26,6 @@ bool WindowsProcess::start(const std::string& command){
     std::wstring wCommand(size_needed, 0);
     MultiByteToWideChar(CP_UTF8, 0, command.c_str(), -1, &wCommand[0], size_needed);
 
-    // CreateProcessW expects the command line in wCommand
     if (!CreateProcessW(
             nullptr,         // No module name (use command line)
             &wCommand[0],    // Command line (in/out)
@@ -104,23 +99,20 @@ double WindowsProcess::getCPUUsage(){
     }
     
     FILETIME ftCreation, ftExit, ftKernel, ftUser, ftNow;
-    // Get initial process times
+
     if (!GetProcessTimes(hProcess, &ftCreation, &ftExit, &ftKernel, &ftUser)) {
         std::cerr << "GetProcessTimes failed. Error: " << GetLastError() << std::endl;
         CloseHandle(hProcess);
         return -1.0;
     }
     
-    // Get current system time
     GetSystemTimeAsFileTime(&ftNow);
     uint64_t prevKernel = FileTimeToUInt64(ftKernel);
     uint64_t prevUser   = FileTimeToUInt64(ftUser);
     uint64_t prevTime   = FileTimeToUInt64(ftNow);
     
-    // Wait for the sampling interval
     Sleep(sampleIntervalMs);
     
-    // Get process times again
     if (!GetProcessTimes(hProcess, &ftCreation, &ftExit, &ftKernel, &ftUser)) {
         std::cerr << "GetProcessTimes failed after sleep. Error: " << GetLastError() << std::endl;
         CloseHandle(hProcess);
@@ -134,11 +126,9 @@ double WindowsProcess::getCPUUsage(){
     
     CloseHandle(hProcess);
     
-    // Calculate the deltas for the process CPU time and the elapsed wall time
     uint64_t processTimeDelta = (curKernel - prevKernel) + (curUser - prevUser);
     uint64_t timeDelta = curTime - prevTime;
     
-    // Compute the CPU usage as a percentage (relative to one core)
     double cpuUsage = (timeDelta > 0) ? (processTimeDelta * 100.0 / timeDelta) : 0.0;
     
     return cpuUsage;
@@ -147,7 +137,7 @@ double WindowsProcess::getCPUUsage(){
 double WindowsProcess::getMemoryUsage(){
     PROCESS_MEMORY_COUNTERS_EX pmc;
     if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc))) {
-        SIZE_T memUsed = pmc.WorkingSetSize; // bytes
+        SIZE_T memUsed = pmc.WorkingSetSize;
         return static_cast<double>(memUsed) / (1024.0 * 1024.0);
     }
 }

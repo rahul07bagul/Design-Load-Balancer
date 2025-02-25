@@ -7,11 +7,7 @@ LoadBalancerService::LoadBalancerService(
     : server_manager_(server_manager)
     , strategy_(strategy) {}
 
-grpc::Status LoadBalancerService::HandleRequest(
-    grpc::ServerContext* context,
-    const loadbalancer::Request* request,
-    loadbalancer::Response* response) {
-
+grpc::Status LoadBalancerService::HandleRequest( grpc::ServerContext* context, const loadbalancer::Request* request, loadbalancer::Response* response) {
     auto servers = server_manager_->getActiveServers();
     auto selected_server = strategy_->selectServer(servers, *request);
 
@@ -22,11 +18,9 @@ grpc::Status LoadBalancerService::HandleRequest(
     selected_server->incrementRequestCount();
     
     // Create client and forward request to selected server
-    std::string server_address = selected_server->getAddress() + ":" + 
-                                std::to_string(selected_server->getPort());
+    std::string server_address = selected_server->getAddress() + ":" + std::to_string(selected_server->getPort());
     
-    auto channel = grpc::CreateChannel(
-        server_address, grpc::InsecureChannelCredentials());
+    auto channel = grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials());
     auto stub = loadbalancer::LoadBalancerService::NewStub(channel);
 
     grpc::ClientContext client_context;

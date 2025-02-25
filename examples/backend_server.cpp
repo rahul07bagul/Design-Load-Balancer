@@ -7,10 +7,7 @@
 
 class BackendServer final : public loadbalancer::LoadBalancerService::Service, public admin::AdminService::Service{
 public:
-    grpc::Status HandleRequest(grpc::ServerContext *context,
-                               const loadbalancer::Request *request,
-                               loadbalancer::Response *response) override
-    {
+    grpc::Status HandleRequest(grpc::ServerContext *context, const loadbalancer::Request *request, loadbalancer::Response *response) override {
         std::cout << "Backend server received request: " << request->message()
                   << " on port: " << port_ << std::endl;
 
@@ -21,10 +18,7 @@ public:
         return grpc::Status::OK;
     }
 
-    grpc::Status GetMetrics(grpc::ServerContext *context,
-                            const google::protobuf::Empty *request,
-                            admin::MetricsResponse *response) override
-    {
+    grpc::Status GetMetrics(grpc::ServerContext *context, const google::protobuf::Empty *request, admin::MetricsResponse *response) override {
         auto process = ProcessFactory::createProcess();
         double cpu = process->getCPUUsage();
         double mem = process->getMemoryUsage();
@@ -41,8 +35,7 @@ private:
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
-    {
+    if (argc != 2){
         std::cerr << "Usage: " << argv[0] << " <port>" << std::endl;
         return 1;
     }
@@ -55,7 +48,6 @@ int main(int argc, char **argv)
 
     grpc::ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-    //builder.RegisterService(&service);
     
     builder.RegisterService(static_cast<loadbalancer::LoadBalancerService::Service*>(&service));
     builder.RegisterService(static_cast<admin::AdminService::Service*>(&service));

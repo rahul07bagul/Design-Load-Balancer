@@ -4,7 +4,6 @@
 #include "core/server_manager.hpp"
 #include <memory>
 
-// This class implements our AdminService gRPC interface
 class AdminService final : public admin::AdminService::Service {
 public:
     explicit AdminService(std::shared_ptr<ServerManager> server_manager);

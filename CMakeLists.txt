@@ -21,26 +21,26 @@ find_package(nlohmann_json CONFIG REQUIRED)      # Provided by vcpkg install nlo
 #    - (Optionally) separate file for Crow code, if you prefer
 # -----------------------------------------------------------------------
 set(LIB_SOURCES
-    # Core LB sources
     src/core/server.cpp
     src/core/server_manager.cpp
     src/core/load_balancer.cpp
-    src/strategies/round_robin.cpp
+    src/core/process/process_factory.cpp
+    src/core/process/windows_process.cpp
 
-    # Generated gRPC/protobuf sources for load_balancer.proto
+    src/strategies/round_robin.cpp
+    src/strategies/least_connections.cpp
+    #src/strategies/resource_based.cpp
+
     proto/load_balancer.pb.cc
     proto/load_balancer.grpc.pb.cc
 
-    # Generated gRPC/protobuf sources for admin_service.proto
     proto/admin_service.pb.cc
     proto/admin_service.grpc.pb.cc
 
     src/api/admin_service.cpp
     src/api/crow_service.cpp
 
-    #src/core/process/process.cpp
-    src/core/process/process_factory.cpp
-    src/core/process/windows_process.cpp
+    src/utils/config.cpp
 )
 
 include_directories(

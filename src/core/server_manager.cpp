@@ -1,6 +1,7 @@
 #include "core/server_manager.hpp"
 #include <windows.h>
 #include <process.h>
+#include "utils/config.hpp"
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -58,7 +59,7 @@ std::shared_ptr<Server> ServerManager::addServer() {
     if (active_servers >= max_servers_) {
         return nullptr;
     }
-    auto server = std::make_shared<Server>("127.0.0.1", next_port_);
+    auto server = std::make_shared<Server>(server_address, next_port_);
     std::string command = executable_path_ + " " + std::to_string(next_port_);
     auto process = ProcessFactory::createProcess();
     if (!process->start(command)) {
@@ -82,7 +83,6 @@ void ServerManager::updateServerHealth(const std::string& id,
         return;
     }
 
-    // Update the server object
     server->setHealthStatus(isHealthy);
     server->setCPUUsage(cpuUsage);
     server->setMemoryUsage(memoryUsage);

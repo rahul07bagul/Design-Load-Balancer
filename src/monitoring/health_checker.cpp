@@ -12,10 +12,7 @@ const double SCALE_UP_CPU_THRESHOLD = 80.0;
 const double SCALE_DOWN_CPU_THRESHOLD = 20.0;
 static const double NEW_SERVER_USAGE = 0.0;
 
-std::vector<admin::ServerInfo> listAllServers(std::unique_ptr<admin::AdminService::Stub>& stub) {
-    grpc::ClientContext ctx;
-    google::protobuf::Empty empty;
-    admin::ListServersResponse response;
+std::vector<admin::ServerInfo> listAllServers(std::unique_ptr<admin::AdminService::Stub>& stub) { grpc::ClientContext ctx; google::protobuf::Empty empty; admin::ListServersResponse response;
 
     auto status = stub->ListServers(&ctx, empty, &response);
     if (!status.ok()) {
@@ -42,7 +39,6 @@ bool isServerResponding(const std::string& host, int port) {
     setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
     setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout));
 
-    // Set non-blocking mode
     u_long mode = 1;
     if (ioctlsocket(sock, FIONBIO, &mode) != 0) {
         std::cerr << "Failed to set non-blocking mode: " << WSAGetLastError() << std::endl;
@@ -54,7 +50,6 @@ bool isServerResponding(const std::string& host, int port) {
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(port);
 
-    // Convert address with error checking
     if (inet_pton(AF_INET, host.c_str(), &server_addr.sin_addr) != 1) {
         std::cerr << "Invalid address: " << host << std::endl;
         closesocket(sock);
@@ -98,8 +93,7 @@ bool isServerResponding(const std::string& host, int port) {
     return true;
 }
 
-void updateServerHealth(std::unique_ptr<admin::AdminService::Stub>& stub,
-                        const std::vector<admin::UpdateServerHealthRequest>& updates) {
+void updateServerHealth(std::unique_ptr<admin::AdminService::Stub>& stub, const std::vector<admin::UpdateServerHealthRequest>& updates) {
     admin::UpdateServerHealthRequests req;
     for (auto& u : updates) {
         auto* s = req.add_updates();
