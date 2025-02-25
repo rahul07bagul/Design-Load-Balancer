@@ -21,21 +21,17 @@ void runCrowServer(std::shared_ptr<ServerManager> server_manager)
         .methods("GET"_method, "OPTIONS"_method)
     ([server_manager](const crow::request& req, crow::response& res)
     {
-        // Always set CORS headers
         addCORSHeaders(res);
 
-        // If it's an OPTIONS request, just return 200 OK now
         if (req.method == crow::HTTPMethod::OPTIONS)
         {
             res.end();
             return;
         }
 
-        // Otherwise, it's a GET
         nlohmann::json json_response;
         json_response["servers"] = nlohmann::json::array();
 
-        // Gather info from ServerManager
         auto servers = server_manager->getAllServers();
         for (const auto& server : servers) {
             json_response["servers"].push_back({
@@ -45,12 +41,11 @@ void runCrowServer(std::shared_ptr<ServerManager> server_manager)
                 {"healthy",  server->isHealthy()},
                 {"requests", server->getRequestCount()},
                 {"active_connections", server->getActiveConnections()},
-                {"cpu_usage",server->getCpuUsage()},
+                {"cpu_usage",server->getCPUUsage()},
                 {"mem_usage",server->getMemoryUsage()}
             });
         }
 
-        // Send JSON body
         res.write(json_response.dump());
         res.end();
     });
@@ -70,17 +65,14 @@ void runCrowServer(std::shared_ptr<ServerManager> server_manager)
             return;
         }
 
-        // POST logic to add a new server
         auto newSrv = server_manager->addServer();
         if (!newSrv) {
-            // E.g. max servers reached
             res.code = 400;
             res.write(R"({"error": "Max servers reached or cannot add"})");
             res.end();
             return;
         }
 
-        // Success JSON
         nlohmann::json j{
             {"message", "Server added successfully"},
             {"id", newSrv->getId()}
@@ -105,7 +97,6 @@ void runCrowServer(std::shared_ptr<ServerManager> server_manager)
             return;
         }
 
-        // Parse JSON body to find "id"
         try {
             auto body = nlohmann::json::parse(req.body);
             if (!body.contains("id") || !body["id"].is_string()) {
@@ -118,16 +109,13 @@ void runCrowServer(std::shared_ptr<ServerManager> server_manager)
             std::string server_id = body["id"].get<std::string>();
             std::cout << "Removing server with ID: " << server_id << std::endl;
 
-            // Attempt removal
             if (!server_manager->removeServerById(server_id)) {
-                // Possibly server not found or min servers
                 res.code = 404;
                 res.write(R"({"error": "Server not found or minimum servers reached"})");
                 res.end();
                 return;
             }
 
-            // Success response
             nlohmann::json j{
                 {"message", "Server removed successfully"},
                 {"id", server_id}

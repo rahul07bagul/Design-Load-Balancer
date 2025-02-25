@@ -8,7 +8,7 @@
 static HANDLE CreateServerProcess(const std::string& command);
 
 ServerManager::ServerManager(const std::string& executable_path,
-                           uint16_t start_port,
+                           int start_port,
                            size_t min_servers,
                            size_t max_servers)
     : executable_path_(executable_path)

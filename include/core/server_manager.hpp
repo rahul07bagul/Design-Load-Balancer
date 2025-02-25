@@ -9,7 +9,7 @@
 class ServerManager {
 public:
     ServerManager(const std::string& executable_path, 
-                 uint16_t start_port,
+                 int start_port,
                  size_t min_servers,
                  size_t max_servers);
     
@@ -30,7 +30,7 @@ public:
     
 private:
     std::string executable_path_;
-    uint16_t next_port_;
+    int next_port_;
     size_t min_servers_;
     size_t max_servers_;
     std::atomic<size_t> active_servers;

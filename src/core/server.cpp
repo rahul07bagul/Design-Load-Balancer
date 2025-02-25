@@ -1,6 +1,6 @@
 #include "core/server.hpp"
 
-Server::Server(const std::string& host, uint16_t port)
+Server::Server(const std::string& host, int port)
     : host_(host)
     , port_(port)
     , is_healthy_(true)
@@ -13,7 +13,7 @@ std::string Server::getAddress() const {
     return host_;
 }
 
-uint16_t Server::getPort() const {
+int Server::getPort() const {
     return port_;
 }
 
@@ -62,6 +62,6 @@ void Server::decrementActiveConnections() {
     active_connections_.fetch_sub(1, std::memory_order_relaxed);
 }
 
-uint64_t Server::getActiveConnections() const {
+int Server::getActiveConnections() const {
     return active_connections_.load(std::memory_order_relaxed);
 }

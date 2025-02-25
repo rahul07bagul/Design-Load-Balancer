@@ -37,8 +37,8 @@ void printUsage(const char* programName) {
 
 struct Config {
     std::string backend_path;
-    uint16_t lb_port = 50050;
-    uint16_t start_port = 50051;
+    int lb_port = 50050;
+    int start_port = 50051;
     size_t min_servers = 2;
     size_t max_servers = 5;
 };
@@ -59,13 +59,13 @@ Config parseArgs(int argc, char** argv) {
             if (arg == "--backend-path") {
                 config.backend_path = argv[++i];
             } else if (arg == "--port") {
-                config.lb_port = static_cast<uint16_t>(std::stoi(argv[++i]));
+                config.lb_port = static_cast<int>(std::stoi(argv[++i]));
             } else if (arg == "--min-servers") {
                 config.min_servers = static_cast<size_t>(std::stoi(argv[++i]));
             } else if (arg == "--max-servers") {
                 config.max_servers = static_cast<size_t>(std::stoi(argv[++i]));
             } else if (arg == "--start-port") {
-                config.start_port = static_cast<uint16_t>(std::stoi(argv[++i]));
+                config.start_port = static_cast<int>(std::stoi(argv[++i]));
             } else if (arg == "--help" || arg == "-h") {
                 printUsage(argv[0]);
                 exit(0);

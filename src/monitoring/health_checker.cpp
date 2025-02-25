@@ -30,7 +30,7 @@ std::vector<admin::ServerInfo> listAllServers(std::unique_ptr<admin::AdminServic
     return result;
 }
 
-bool isServerResponding(const std::string& host, uint16_t port) {
+bool isServerResponding(const std::string& host, int port) {
     SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sock == INVALID_SOCKET) {
         std::cerr << "Failed to create socket: " << WSAGetLastError() << std::endl;
@@ -118,7 +118,7 @@ void updateServerHealth(std::unique_ptr<admin::AdminService::Stub>& stub,
     }
 }
 
-bool getServerMetrics(const std::string& host, uint16_t port, double& outCpu, double& outMem) {
+bool getServerMetrics(const std::string& host, int port, double& outCpu, double& outMem) {
     std::string target = host + ":" + std::to_string(port);
     auto channel = grpc::CreateChannel(target, grpc::InsecureChannelCredentials());
     auto stub = admin::AdminService::NewStub(channel);
