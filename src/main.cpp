@@ -1,103 +1,83 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <csignal>
 #include <grpcpp/grpcpp.h>
+#include <thread> 
+
 #include "core/load_balancer.hpp"
 #include "core/server_manager.hpp"
-#include "strategies/round_robin.hpp"
+#include "api/admin_service.hpp"
+#include "api/crow_service.hpp"
+#include "utils/config.hpp"
+#include "utils/helper.hpp"
 
-void printUsage(const char* programName) {
-    std::cerr << "Usage: " << programName << " [options]\n"
-              << "Options:\n"
-              << "  --backend-path PATH   Path to backend server executable (required)\n"
-              << "  --port PORT           Load balancer port (default: 50050)\n"
-              << "  --min-servers N       Minimum number of backend servers (default: 2)\n"
-              << "  --max-servers N       Maximum number of backend servers (default: 5)\n"
-              << "  --start-port N        Starting port for backend servers (default: 50051)\n";
-}
+std::unique_ptr<grpc::Server> g_server;
+bool g_shutting_down = false;
+std::shared_ptr<ServerManager> server_manager;
 
-struct Config {
-    std::string backend_path;
-    uint16_t lb_port = 50050;
-    uint16_t start_port = 50051;
-    size_t min_servers = 2;
-    size_t max_servers = 5;
-};
+void signalHandler(int signum) {
+    std::cout << "\nShutdown signal received. Cleaning up..." << std::endl;
+    g_shutting_down = true;
 
-Config parseArgs(int argc, char** argv) {
-    Config config;
-    
-    for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
-        
-        if (arg == "--backend-path" && i + 1 < argc) {
-            config.backend_path = argv[++i];
-        } else if (arg == "--port" && i + 1 < argc) {
-            config.lb_port = std::stoi(argv[++i]);
-        } else if (arg == "--min-servers" && i + 1 < argc) {
-            config.min_servers = std::stoi(argv[++i]);
-        } else if (arg == "--max-servers" && i + 1 < argc) {
-            config.max_servers = std::stoi(argv[++i]);
-        } else if (arg == "--start-port" && i + 1 < argc) {
-            config.start_port = std::stoi(argv[++i]);
-        } else {
-            printUsage(argv[0]);
-            exit(1);
-        }
+    if (g_server) {
+        std::cout << "Shutting down gRPC server..." << std::endl;
+        g_server->Shutdown();
     }
-    
-    if (config.backend_path.empty()) {
-        std::cerr << "Error: --backend-path is required\n";
-        printUsage(argv[0]);
-        exit(1);
-    }
-    
-    return config;
 }
 
 int main(int argc, char** argv) {
     try {
+        // Register signal handler
+        signal(SIGINT, signalHandler);
+        signal(SIGTERM, signalHandler);
+
         // Parse command line arguments
         Config config = parseArgs(argc, argv);
+        std::shared_ptr<Configuration> configuration = Configuration::getInstance();
         
-        // Create server manager
-        auto server_manager = std::make_shared<ServerManager>(
+        std::cout << "Initializing load balancer with configuration:\n"
+                  << "  Backend path: " << config.backend_path << "\n"
+                  << "  Load balancer port: " << config.lb_port << "\n"
+                  << "  Start port: " << config.start_port << "\n"
+                  << "  Min servers: " << config.min_servers << "\n"
+                  << "  Max servers: " << config.max_servers << std::endl;
+        
+        // server manager
+        server_manager = std::make_shared<ServerManager>(
             config.backend_path,
             config.start_port,
             config.min_servers,
             config.max_servers
         );
         
-        // Create load balancing strategy
-        auto strategy = std::make_shared<RoundRobinStrategy>();
+        // load balancing strategy
+        auto strategy = configuration->getStrategy();
         
-        // Create load balancer service
+        // load balancer service
         LoadBalancerService service(server_manager, strategy);
+
+        auto admin_service = std::make_unique<AdminService>(server_manager);
+
+        std::thread crowThread(runCrowServer, server_manager);
         
         // Setup and start gRPC server
-        std::string server_address = std::string("0.0.0.0:") + std::to_string(config.lb_port);
+        std::string server_address = std::string(load_balancer_address) +":"+ std::to_string(config.lb_port);
         grpc::ServerBuilder builder;
         
-        // Add listening port to the server
         builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-        
-        // Register service
         builder.RegisterService(&service);
+        builder.RegisterService(admin_service.get());
         
-        // Start the server
-        std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
+        g_server = builder.BuildAndStart();
         std::cout << "Load Balancer started at: " << server_address << std::endl;
-        std::cout << "Backend servers configuration:" << std::endl;
-        std::cout << "  - Number of servers: " << config.min_servers << " to " 
-                 << config.max_servers << std::endl;
-        std::cout << "  - Starting port: " << config.start_port << std::endl;
         
-        // Keep the server running
-        server->Wait();
-        
+        g_server->Wait();
+
+        std::cout << "Cleanup complete. Exiting." << std::endl;
         return 0;
     } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << "Fatal error: " << e.what() << std::endl;
         return 1;
     }
 }

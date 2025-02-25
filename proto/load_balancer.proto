@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package loadbalancer;
+import "google/protobuf/empty.proto";
 
 service LoadBalancerService {
     rpc HandleRequest (Request) returns (Response) {}
