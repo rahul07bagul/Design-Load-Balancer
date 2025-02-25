@@ -47,11 +47,11 @@ class AdminService final {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::admin::ListServersResponse>>(PrepareAsyncListServersRaw(context, request, cq));
     }
     // Update the health status of a server
-    virtual ::grpc::Status UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest& request, ::google::protobuf::Empty* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> AsyncUpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest& request, ::grpc::CompletionQueue* cq) {
+    virtual ::grpc::Status UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests& request, ::google::protobuf::Empty* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> AsyncUpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(AsyncUpdateServerHealthRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncUpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest& request, ::grpc::CompletionQueue* cq) {
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncUpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncUpdateServerHealthRaw(context, request, cq));
     }
     // Request that the LB create a new server
@@ -70,6 +70,20 @@ class AdminService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncRemoveServer(::grpc::ClientContext* context, const ::admin::RemoveServerRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncRemoveServerRaw(context, request, cq));
     }
+    virtual ::grpc::Status GetMetrics(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::admin::MetricsResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::admin::MetricsResponse>> AsyncGetMetrics(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::admin::MetricsResponse>>(AsyncGetMetricsRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::admin::MetricsResponse>> PrepareAsyncGetMetrics(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::admin::MetricsResponse>>(PrepareAsyncGetMetricsRaw(context, request, cq));
+    }
+    virtual ::grpc::Status GetServerConstraints(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::admin::ServerConstraintsResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::admin::ServerConstraintsResponse>> AsyncGetServerConstraints(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::admin::ServerConstraintsResponse>>(AsyncGetServerConstraintsRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::admin::ServerConstraintsResponse>> PrepareAsyncGetServerConstraints(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::admin::ServerConstraintsResponse>>(PrepareAsyncGetServerConstraintsRaw(context, request, cq));
+    }
     class async_interface {
      public:
       virtual ~async_interface() {}
@@ -77,14 +91,18 @@ class AdminService final {
       virtual void ListServers(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::ListServersResponse* response, std::function<void(::grpc::Status)>) = 0;
       virtual void ListServers(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::ListServersResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       // Update the health status of a server
-      virtual void UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       // Request that the LB create a new server
       virtual void AddServer(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::AddServerResponse* response, std::function<void(::grpc::Status)>) = 0;
       virtual void AddServer(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::AddServerResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       // Request that the LB remove a specific server
       virtual void RemoveServer(::grpc::ClientContext* context, const ::admin::RemoveServerRequest* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
       virtual void RemoveServer(::grpc::ClientContext* context, const ::admin::RemoveServerRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void GetMetrics(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::MetricsResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void GetMetrics(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::MetricsResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void GetServerConstraints(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::ServerConstraintsResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void GetServerConstraints(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::ServerConstraintsResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
@@ -92,12 +110,16 @@ class AdminService final {
    private:
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::admin::ListServersResponse>* AsyncListServersRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::admin::ListServersResponse>* PrepareAsyncListServersRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* AsyncUpdateServerHealthRaw(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncUpdateServerHealthRaw(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* AsyncUpdateServerHealthRaw(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncUpdateServerHealthRaw(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::admin::AddServerResponse>* AsyncAddServerRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::admin::AddServerResponse>* PrepareAsyncAddServerRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* AsyncRemoveServerRaw(::grpc::ClientContext* context, const ::admin::RemoveServerRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncRemoveServerRaw(::grpc::ClientContext* context, const ::admin::RemoveServerRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::admin::MetricsResponse>* AsyncGetMetricsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::admin::MetricsResponse>* PrepareAsyncGetMetricsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::admin::ServerConstraintsResponse>* AsyncGetServerConstraintsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::admin::ServerConstraintsResponse>* PrepareAsyncGetServerConstraintsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -109,11 +131,11 @@ class AdminService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::admin::ListServersResponse>> PrepareAsyncListServers(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::admin::ListServersResponse>>(PrepareAsyncListServersRaw(context, request, cq));
     }
-    ::grpc::Status UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest& request, ::google::protobuf::Empty* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> AsyncUpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest& request, ::grpc::CompletionQueue* cq) {
+    ::grpc::Status UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests& request, ::google::protobuf::Empty* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> AsyncUpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(AsyncUpdateServerHealthRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncUpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest& request, ::grpc::CompletionQueue* cq) {
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncUpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncUpdateServerHealthRaw(context, request, cq));
     }
     ::grpc::Status AddServer(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::admin::AddServerResponse* response) override;
@@ -130,17 +152,35 @@ class AdminService final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncRemoveServer(::grpc::ClientContext* context, const ::admin::RemoveServerRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncRemoveServerRaw(context, request, cq));
     }
+    ::grpc::Status GetMetrics(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::admin::MetricsResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::admin::MetricsResponse>> AsyncGetMetrics(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::admin::MetricsResponse>>(AsyncGetMetricsRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::admin::MetricsResponse>> PrepareAsyncGetMetrics(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::admin::MetricsResponse>>(PrepareAsyncGetMetricsRaw(context, request, cq));
+    }
+    ::grpc::Status GetServerConstraints(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::admin::ServerConstraintsResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::admin::ServerConstraintsResponse>> AsyncGetServerConstraints(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::admin::ServerConstraintsResponse>>(AsyncGetServerConstraintsRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::admin::ServerConstraintsResponse>> PrepareAsyncGetServerConstraints(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::admin::ServerConstraintsResponse>>(PrepareAsyncGetServerConstraintsRaw(context, request, cq));
+    }
     class async final :
       public StubInterface::async_interface {
      public:
       void ListServers(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::ListServersResponse* response, std::function<void(::grpc::Status)>) override;
       void ListServers(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::ListServersResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
-      void UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
+      void UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
       void AddServer(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::AddServerResponse* response, std::function<void(::grpc::Status)>) override;
       void AddServer(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::AddServerResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
       void RemoveServer(::grpc::ClientContext* context, const ::admin::RemoveServerRequest* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
       void RemoveServer(::grpc::ClientContext* context, const ::admin::RemoveServerRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void GetMetrics(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::MetricsResponse* response, std::function<void(::grpc::Status)>) override;
+      void GetMetrics(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::MetricsResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void GetServerConstraints(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::ServerConstraintsResponse* response, std::function<void(::grpc::Status)>) override;
+      void GetServerConstraints(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::ServerConstraintsResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -154,16 +194,22 @@ class AdminService final {
     class async async_stub_{this};
     ::grpc::ClientAsyncResponseReader< ::admin::ListServersResponse>* AsyncListServersRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::admin::ListServersResponse>* PrepareAsyncListServersRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AsyncUpdateServerHealthRaw(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncUpdateServerHealthRaw(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AsyncUpdateServerHealthRaw(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncUpdateServerHealthRaw(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::admin::AddServerResponse>* AsyncAddServerRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::admin::AddServerResponse>* PrepareAsyncAddServerRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AsyncRemoveServerRaw(::grpc::ClientContext* context, const ::admin::RemoveServerRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncRemoveServerRaw(::grpc::ClientContext* context, const ::admin::RemoveServerRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::admin::MetricsResponse>* AsyncGetMetricsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::admin::MetricsResponse>* PrepareAsyncGetMetricsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::admin::ServerConstraintsResponse>* AsyncGetServerConstraintsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::admin::ServerConstraintsResponse>* PrepareAsyncGetServerConstraintsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_ListServers_;
     const ::grpc::internal::RpcMethod rpcmethod_UpdateServerHealth_;
     const ::grpc::internal::RpcMethod rpcmethod_AddServer_;
     const ::grpc::internal::RpcMethod rpcmethod_RemoveServer_;
+    const ::grpc::internal::RpcMethod rpcmethod_GetMetrics_;
+    const ::grpc::internal::RpcMethod rpcmethod_GetServerConstraints_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -174,11 +220,13 @@ class AdminService final {
     // Return the full list of servers (host, port, healthy, etc.)
     virtual ::grpc::Status ListServers(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::admin::ListServersResponse* response);
     // Update the health status of a server
-    virtual ::grpc::Status UpdateServerHealth(::grpc::ServerContext* context, const ::admin::UpdateServerHealthRequest* request, ::google::protobuf::Empty* response);
+    virtual ::grpc::Status UpdateServerHealth(::grpc::ServerContext* context, const ::admin::UpdateServerHealthRequests* request, ::google::protobuf::Empty* response);
     // Request that the LB create a new server
     virtual ::grpc::Status AddServer(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::admin::AddServerResponse* response);
     // Request that the LB remove a specific server
     virtual ::grpc::Status RemoveServer(::grpc::ServerContext* context, const ::admin::RemoveServerRequest* request, ::google::protobuf::Empty* response);
+    virtual ::grpc::Status GetMetrics(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::admin::MetricsResponse* response);
+    virtual ::grpc::Status GetServerConstraints(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::admin::ServerConstraintsResponse* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_ListServers : public BaseClass {
@@ -212,11 +260,11 @@ class AdminService final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UpdateServerHealth(::grpc::ServerContext* /*context*/, const ::admin::UpdateServerHealthRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status UpdateServerHealth(::grpc::ServerContext* /*context*/, const ::admin::UpdateServerHealthRequests* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestUpdateServerHealth(::grpc::ServerContext* context, ::admin::UpdateServerHealthRequest* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestUpdateServerHealth(::grpc::ServerContext* context, ::admin::UpdateServerHealthRequests* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
@@ -260,7 +308,47 @@ class AdminService final {
       ::grpc::Service::RequestAsyncUnary(3, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_ListServers<WithAsyncMethod_UpdateServerHealth<WithAsyncMethod_AddServer<WithAsyncMethod_RemoveServer<Service > > > > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_GetMetrics : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_GetMetrics() {
+      ::grpc::Service::MarkMethodAsync(4);
+    }
+    ~WithAsyncMethod_GetMetrics() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetMetrics(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::admin::MetricsResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetMetrics(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::admin::MetricsResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(4, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_GetServerConstraints : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_GetServerConstraints() {
+      ::grpc::Service::MarkMethodAsync(5);
+    }
+    ~WithAsyncMethod_GetServerConstraints() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetServerConstraints(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::admin::ServerConstraintsResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetServerConstraints(::grpc::ServerContext* context, ::google::protobuf::Empty* request, ::grpc::ServerAsyncResponseWriter< ::admin::ServerConstraintsResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_ListServers<WithAsyncMethod_UpdateServerHealth<WithAsyncMethod_AddServer<WithAsyncMethod_RemoveServer<WithAsyncMethod_GetMetrics<WithAsyncMethod_GetServerConstraints<Service > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_ListServers : public BaseClass {
    private:
@@ -295,25 +383,25 @@ class AdminService final {
    public:
     WithCallbackMethod_UpdateServerHealth() {
       ::grpc::Service::MarkMethodCallback(1,
-          new ::grpc::internal::CallbackUnaryHandler< ::admin::UpdateServerHealthRequest, ::google::protobuf::Empty>(
+          new ::grpc::internal::CallbackUnaryHandler< ::admin::UpdateServerHealthRequests, ::google::protobuf::Empty>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::admin::UpdateServerHealthRequest* request, ::google::protobuf::Empty* response) { return this->UpdateServerHealth(context, request, response); }));}
+                   ::grpc::CallbackServerContext* context, const ::admin::UpdateServerHealthRequests* request, ::google::protobuf::Empty* response) { return this->UpdateServerHealth(context, request, response); }));}
     void SetMessageAllocatorFor_UpdateServerHealth(
-        ::grpc::MessageAllocator< ::admin::UpdateServerHealthRequest, ::google::protobuf::Empty>* allocator) {
+        ::grpc::MessageAllocator< ::admin::UpdateServerHealthRequests, ::google::protobuf::Empty>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(1);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::admin::UpdateServerHealthRequest, ::google::protobuf::Empty>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::admin::UpdateServerHealthRequests, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
     ~WithCallbackMethod_UpdateServerHealth() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UpdateServerHealth(::grpc::ServerContext* /*context*/, const ::admin::UpdateServerHealthRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status UpdateServerHealth(::grpc::ServerContext* /*context*/, const ::admin::UpdateServerHealthRequests* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     virtual ::grpc::ServerUnaryReactor* UpdateServerHealth(
-      ::grpc::CallbackServerContext* /*context*/, const ::admin::UpdateServerHealthRequest* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::admin::UpdateServerHealthRequests* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
   class WithCallbackMethod_AddServer : public BaseClass {
@@ -369,7 +457,61 @@ class AdminService final {
     virtual ::grpc::ServerUnaryReactor* RemoveServer(
       ::grpc::CallbackServerContext* /*context*/, const ::admin::RemoveServerRequest* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_ListServers<WithCallbackMethod_UpdateServerHealth<WithCallbackMethod_AddServer<WithCallbackMethod_RemoveServer<Service > > > > CallbackService;
+  template <class BaseClass>
+  class WithCallbackMethod_GetMetrics : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_GetMetrics() {
+      ::grpc::Service::MarkMethodCallback(4,
+          new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::admin::MetricsResponse>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::admin::MetricsResponse* response) { return this->GetMetrics(context, request, response); }));}
+    void SetMessageAllocatorFor_GetMetrics(
+        ::grpc::MessageAllocator< ::google::protobuf::Empty, ::admin::MetricsResponse>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(4);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::admin::MetricsResponse>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_GetMetrics() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetMetrics(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::admin::MetricsResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* GetMetrics(
+      ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::admin::MetricsResponse* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithCallbackMethod_GetServerConstraints : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_GetServerConstraints() {
+      ::grpc::Service::MarkMethodCallback(5,
+          new ::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::admin::ServerConstraintsResponse>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::google::protobuf::Empty* request, ::admin::ServerConstraintsResponse* response) { return this->GetServerConstraints(context, request, response); }));}
+    void SetMessageAllocatorFor_GetServerConstraints(
+        ::grpc::MessageAllocator< ::google::protobuf::Empty, ::admin::ServerConstraintsResponse>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(5);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::google::protobuf::Empty, ::admin::ServerConstraintsResponse>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_GetServerConstraints() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetServerConstraints(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::admin::ServerConstraintsResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* GetServerConstraints(
+      ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::admin::ServerConstraintsResponse* /*response*/)  { return nullptr; }
+  };
+  typedef WithCallbackMethod_ListServers<WithCallbackMethod_UpdateServerHealth<WithCallbackMethod_AddServer<WithCallbackMethod_RemoveServer<WithCallbackMethod_GetMetrics<WithCallbackMethod_GetServerConstraints<Service > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_ListServers : public BaseClass {
@@ -400,7 +542,7 @@ class AdminService final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UpdateServerHealth(::grpc::ServerContext* /*context*/, const ::admin::UpdateServerHealthRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status UpdateServerHealth(::grpc::ServerContext* /*context*/, const ::admin::UpdateServerHealthRequests* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -440,6 +582,40 @@ class AdminService final {
     }
   };
   template <class BaseClass>
+  class WithGenericMethod_GetMetrics : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_GetMetrics() {
+      ::grpc::Service::MarkMethodGeneric(4);
+    }
+    ~WithGenericMethod_GetMetrics() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetMetrics(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::admin::MetricsResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_GetServerConstraints : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_GetServerConstraints() {
+      ::grpc::Service::MarkMethodGeneric(5);
+    }
+    ~WithGenericMethod_GetServerConstraints() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetServerConstraints(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::admin::ServerConstraintsResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
   class WithRawMethod_ListServers : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
@@ -471,7 +647,7 @@ class AdminService final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UpdateServerHealth(::grpc::ServerContext* /*context*/, const ::admin::UpdateServerHealthRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status UpdateServerHealth(::grpc::ServerContext* /*context*/, const ::admin::UpdateServerHealthRequests* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -520,6 +696,46 @@ class AdminService final {
     }
   };
   template <class BaseClass>
+  class WithRawMethod_GetMetrics : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_GetMetrics() {
+      ::grpc::Service::MarkMethodRaw(4);
+    }
+    ~WithRawMethod_GetMetrics() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetMetrics(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::admin::MetricsResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetMetrics(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(4, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_GetServerConstraints : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_GetServerConstraints() {
+      ::grpc::Service::MarkMethodRaw(5);
+    }
+    ~WithRawMethod_GetServerConstraints() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetServerConstraints(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::admin::ServerConstraintsResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestGetServerConstraints(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithRawCallbackMethod_ListServers : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
@@ -556,7 +772,7 @@ class AdminService final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status UpdateServerHealth(::grpc::ServerContext* /*context*/, const ::admin::UpdateServerHealthRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status UpdateServerHealth(::grpc::ServerContext* /*context*/, const ::admin::UpdateServerHealthRequests* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -608,6 +824,50 @@ class AdminService final {
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
+  class WithRawCallbackMethod_GetMetrics : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_GetMetrics() {
+      ::grpc::Service::MarkMethodRawCallback(4,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetMetrics(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_GetMetrics() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetMetrics(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::admin::MetricsResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* GetMetrics(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_GetServerConstraints : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_GetServerConstraints() {
+      ::grpc::Service::MarkMethodRawCallback(5,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetServerConstraints(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_GetServerConstraints() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status GetServerConstraints(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::admin::ServerConstraintsResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* GetServerConstraints(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
   class WithStreamedUnaryMethod_ListServers : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
@@ -642,10 +902,10 @@ class AdminService final {
     WithStreamedUnaryMethod_UpdateServerHealth() {
       ::grpc::Service::MarkMethodStreamed(1,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::admin::UpdateServerHealthRequest, ::google::protobuf::Empty>(
+          ::admin::UpdateServerHealthRequests, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::admin::UpdateServerHealthRequest, ::google::protobuf::Empty>* streamer) {
+                     ::admin::UpdateServerHealthRequests, ::google::protobuf::Empty>* streamer) {
                        return this->StreamedUpdateServerHealth(context,
                          streamer);
                   }));
@@ -654,12 +914,12 @@ class AdminService final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status UpdateServerHealth(::grpc::ServerContext* /*context*/, const ::admin::UpdateServerHealthRequest* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status UpdateServerHealth(::grpc::ServerContext* /*context*/, const ::admin::UpdateServerHealthRequests* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedUpdateServerHealth(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::admin::UpdateServerHealthRequest,::google::protobuf::Empty>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedUpdateServerHealth(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::admin::UpdateServerHealthRequests,::google::protobuf::Empty>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
   class WithStreamedUnaryMethod_AddServer : public BaseClass {
@@ -715,9 +975,63 @@ class AdminService final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedRemoveServer(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::admin::RemoveServerRequest,::google::protobuf::Empty>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_ListServers<WithStreamedUnaryMethod_UpdateServerHealth<WithStreamedUnaryMethod_AddServer<WithStreamedUnaryMethod_RemoveServer<Service > > > > StreamedUnaryService;
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_GetMetrics : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_GetMetrics() {
+      ::grpc::Service::MarkMethodStreamed(4,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::google::protobuf::Empty, ::admin::MetricsResponse>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::google::protobuf::Empty, ::admin::MetricsResponse>* streamer) {
+                       return this->StreamedGetMetrics(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_GetMetrics() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status GetMetrics(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::admin::MetricsResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedGetMetrics(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::admin::MetricsResponse>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_GetServerConstraints : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_GetServerConstraints() {
+      ::grpc::Service::MarkMethodStreamed(5,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::google::protobuf::Empty, ::admin::ServerConstraintsResponse>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::google::protobuf::Empty, ::admin::ServerConstraintsResponse>* streamer) {
+                       return this->StreamedGetServerConstraints(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_GetServerConstraints() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status GetServerConstraints(::grpc::ServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::admin::ServerConstraintsResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedGetServerConstraints(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::admin::ServerConstraintsResponse>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_ListServers<WithStreamedUnaryMethod_UpdateServerHealth<WithStreamedUnaryMethod_AddServer<WithStreamedUnaryMethod_RemoveServer<WithStreamedUnaryMethod_GetMetrics<WithStreamedUnaryMethod_GetServerConstraints<Service > > > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_ListServers<WithStreamedUnaryMethod_UpdateServerHealth<WithStreamedUnaryMethod_AddServer<WithStreamedUnaryMethod_RemoveServer<Service > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_ListServers<WithStreamedUnaryMethod_UpdateServerHealth<WithStreamedUnaryMethod_AddServer<WithStreamedUnaryMethod_RemoveServer<WithStreamedUnaryMethod_GetMetrics<WithStreamedUnaryMethod_GetServerConstraints<Service > > > > > > StreamedService;
 };
 
 }  // namespace admin

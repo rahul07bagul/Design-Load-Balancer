@@ -30,6 +30,22 @@ void Server::setHealthStatus(bool status) {
     last_health_check_time_ = std::chrono::system_clock::now();
 }
 
+double Server::getCPUUsage() const {
+    return cpu_usage;
+}
+
+void Server::setCPUUsage(double usage) {
+    cpu_usage = usage;
+}
+
+double Server::getMemoryUsage() const {
+    return memory_usage;
+}
+
+void Server::setMemoryUsage(double usage) {
+    memory_usage = usage;
+}
+
 void Server::setLastHealthCheckTime(std::chrono::system_clock::time_point t) {
     last_health_check_time_ = t;
 }

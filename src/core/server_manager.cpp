@@ -38,7 +38,7 @@ std::shared_ptr<Server> ServerManager::findServerById(const std::string& id) {
 
 bool ServerManager::removeServerById(const std::string& id) {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (servers_.size() <= min_servers_) {
+    if (active_servers <= min_servers_) {
         return false;
     }
     for (auto it = servers_.begin(); it != servers_.end(); ++it) {
@@ -46,7 +46,8 @@ bool ServerManager::removeServerById(const std::string& id) {
             if((*it)->getProcess() != nullptr) {
                 (*it)->getProcess()->terminate();
             }
-            servers_.erase(it);
+            (*it)->setHealthStatus(false);
+            active_servers--;
             return true;
         }
     }
@@ -54,7 +55,7 @@ bool ServerManager::removeServerById(const std::string& id) {
 }
 
 std::shared_ptr<Server> ServerManager::addServer() {
-    if (servers_.size() >= max_servers_) {
+    if (active_servers >= max_servers_) {
         return nullptr;
     }
     auto server = std::make_shared<Server>("127.0.0.1", next_port_);
@@ -65,46 +66,46 @@ std::shared_ptr<Server> ServerManager::addServer() {
     }
     server->setProcess(std::move(process));
     servers_.push_back(server);
+    active_servers++;
     next_port_++;
     return server;
+}
+
+void ServerManager::updateServerHealth(const std::string& id, 
+    bool isHealthy, 
+    double cpuUsage, 
+    double memoryUsage) {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    auto server = findServerById(id);
+    if (!server) {
+        return;
+    }
+
+    // Update the server object
+    server->setHealthStatus(isHealthy);
+    server->setCPUUsage(cpuUsage);
+    server->setMemoryUsage(memoryUsage);
 }
 
 std::vector<std::shared_ptr<Server>> ServerManager::getActiveServers() {
     std::lock_guard<std::mutex> lock(mutex_);
     std::vector<std::shared_ptr<Server>> active_servers;
-    for (const auto& server : servers_) {
-        if (server->isHealthy()) {
-            active_servers.push_back(server);
+    for (const auto& srv : servers_) {
+        if (srv->isHealthy()) {
+            active_servers.push_back(srv);
         }
     }
     return active_servers;
 }
 
-// static HANDLE CreateServerProcess(const std::string& command) {
-//     STARTUPINFOW siw;
-//     PROCESS_INFORMATION pi;
-
-//     ZeroMemory(&siw, sizeof(siw));
-//     siw.cb = sizeof(siw);
-//     ZeroMemory(&pi, sizeof(pi));
-
-//     int size_needed = MultiByteToWideChar(CP_UTF8, 0, command.c_str(), -1, NULL, 0);
-//     std::wstring wCommand(size_needed, 0);
-//     MultiByteToWideChar(CP_UTF8, 0, command.c_str(), -1, &wCommand[0], size_needed);
-
-//     if (!CreateProcessW(nullptr,      // No module name (use command line)
-//         &wCommand[0],                 // Command line as wide string
-//         nullptr,                      // Process handle not inheritable
-//         nullptr,                      // Thread handle not inheritable
-//         FALSE,                        // Set handle inheritance to FALSE
-//         0,                           // No creation flags
-//         nullptr,                     // Use parent's environment block
-//         nullptr,                     // Use parent's starting directory 
-//         &siw,                        // Pointer to STARTUPINFOW structure
-//         &pi)) {                      // Pointer to PROCESS_INFORMATION structure
-//         throw std::runtime_error("CreateProcess failed");
-//     }
-
-//     CloseHandle(pi.hThread);
-//     return pi.hProcess;
-// }
+ServerManager::ServerStats ServerManager::getServerStats() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    ServerStats stats;
+    stats.total_servers = servers_.size();
+    stats.active_servers = active_servers;
+    stats.inactive_servers = servers_.size() - active_servers;
+    stats.min_servers = min_servers_;
+    stats.max_servers = max_servers_;
+    return stats;
+}

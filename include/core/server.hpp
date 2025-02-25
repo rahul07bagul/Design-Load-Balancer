@@ -14,6 +14,12 @@ public:
     std::string getId() const;
     bool isHealthy() const;
     void setHealthStatus(bool status);
+
+    double getCPUUsage() const;
+    void setCPUUsage(double usage);
+    double getMemoryUsage() const;
+    void setMemoryUsage(double usage);
+    
     std::chrono::system_clock::time_point getLastHealthCheckTime() const;
     void setLastHealthCheckTime(std::chrono::system_clock::time_point t);
     
@@ -36,4 +42,6 @@ private:
     std::atomic<uint64_t> request_count_{0};
     std::atomic<uint64_t> active_connections_{0};
     std::unique_ptr<Process> process_;
+    double cpu_usage;
+    double memory_usage;
 };

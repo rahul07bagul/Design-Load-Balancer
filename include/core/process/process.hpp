@@ -9,4 +9,6 @@ public:
     virtual bool isRunning() = 0;
     virtual void terminate() = 0;
     virtual int getExitCode() = 0;
+    virtual double getCPUUsage() = 0;
+    virtual double getMemoryUsage() = 0;
 };

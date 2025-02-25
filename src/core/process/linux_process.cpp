@@ -67,3 +67,11 @@ int LinuxProcess::getExitCode(){
     }
     return -1;
 }
+
+double LinuxProcess::getCPUUsage(){
+    return 0.0;
+}
+
+double LinuxProcess::getMemoryUsage(){
+    return 0.0;
+}

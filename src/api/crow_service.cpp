@@ -43,7 +43,10 @@ void runCrowServer(std::shared_ptr<ServerManager> server_manager)
                 {"host",     server->getAddress()},
                 {"port",     server->getPort()},
                 {"healthy",  server->isHealthy()},
-                {"requests", server->getRequestCount()}
+                {"requests", server->getRequestCount()},
+                {"active_connections", server->getActiveConnections()},
+                {"cpu_usage",server->getCpuUsage()},
+                {"mem_usage",server->getMemoryUsage()}
             });
         }
 

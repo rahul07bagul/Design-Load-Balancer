@@ -8,7 +8,7 @@ AdminService::AdminService(std::shared_ptr<ServerManager> server_manager)
     const ::google::protobuf::Empty* request,
     admin::ListServersResponse* response)
 {
-    auto servers = server_manager_->getAllServers(); 
+    auto servers = server_manager_->getActiveServers(); 
 
     for (const auto& server : servers) {
         admin::ServerInfo* info = response->add_servers();
@@ -28,16 +28,17 @@ AdminService::AdminService(std::shared_ptr<ServerManager> server_manager)
 
 ::grpc::Status AdminService::UpdateServerHealth(
     ::grpc::ServerContext* context,
-    const admin::UpdateServerHealthRequest* request,
+    const admin::UpdateServerHealthRequests* request,
     ::google::protobuf::Empty* response)
 {
-    auto server = server_manager_->findServerById(request->id()); 
-    if (!server) {
-        return ::grpc::Status(::grpc::StatusCode::NOT_FOUND,
-                              "Server not found");
+    for (const auto& update : request->updates()) {
+        server_manager_->updateServerHealth(
+            update.id(),
+            update.ishealthy(),
+            update.cpu_usage(),
+            update.memory_usage()
+        );
     }
-
-    server->setHealthStatus(request->ishealthy());
     return ::grpc::Status::OK;
 }
 
@@ -65,5 +66,17 @@ AdminService::AdminService(std::shared_ptr<ServerManager> server_manager)
         return ::grpc::Status(::grpc::StatusCode::NOT_FOUND,
                               "Could not remove server (not found or min servers reached)");
     }
+    return ::grpc::Status::OK;
+}
+
+::grpc::Status AdminService::GetServerConstraints(
+    ::grpc::ServerContext* context,
+    const ::google::protobuf::Empty* request,
+    admin::ServerConstraintsResponse* response)
+{
+    auto sc = server_manager_->getServerStats();
+    response->set_min_servers(static_cast<int>(sc.min_servers));
+    response->set_max_servers(static_cast<int>(sc.max_servers));
+    response->set_active_servers(static_cast<int>(sc.active_servers));
     return ::grpc::Status::OK;
 }

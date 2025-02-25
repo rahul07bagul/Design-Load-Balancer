@@ -16,7 +16,7 @@ public:
 
     // Update the health of a server
     ::grpc::Status UpdateServerHealth(::grpc::ServerContext* context,
-                                      const admin::UpdateServerHealthRequest* request,
+                                      const admin::UpdateServerHealthRequests* request,
                                       ::google::protobuf::Empty* response) override;
 
     // Add a new server
@@ -28,7 +28,11 @@ public:
     ::grpc::Status RemoveServer(::grpc::ServerContext* context,
                                 const admin::RemoveServerRequest* request,
                                 ::google::protobuf::Empty* response) override;
-
+    
+    // Get server stats
+    ::grpc::Status GetServerConstraints(::grpc::ServerContext* context,
+                                  const ::google::protobuf::Empty* request,
+                                  admin::ServerConstraintsResponse* response) override;
 private:
     std::shared_ptr<ServerManager> server_manager_;
 };

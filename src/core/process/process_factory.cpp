@@ -7,9 +7,10 @@
 #endif
 
 std::unique_ptr<Process> ProcessFactory::createProcess() {
-#ifdef _WIN32
-    return std::make_unique<WindowsProcess>();
-#else
-    return std::make_unique<LinuxProcess>();
-#endif
+    #ifdef _WIN32
+        return std::make_unique<WindowsProcess>();
+    #else
+        return std::make_unique<LinuxProcess>();
+    #endif
 }
+

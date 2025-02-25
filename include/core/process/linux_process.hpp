@@ -9,6 +9,8 @@ public:
     bool isRunning() override;
     void terminate() override;
     int getExitCode() override;
+    double getCPUUsage() override;
+    double getMemoryUsage() override;
 private:
     pid_t pid_;
 };

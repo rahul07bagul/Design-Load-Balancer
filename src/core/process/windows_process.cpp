@@ -22,10 +22,9 @@ bool WindowsProcess::start(const std::string& command){
     siw.cb = sizeof(siw);
     ZeroMemory(&pi, sizeof(pi));
 
-    // Convert the command to a wide string
     int size_needed = MultiByteToWideChar(CP_UTF8, 0, command.c_str(), -1, NULL, 0);
     if (size_needed <= 0) {
-        return false; // Could not convert string
+        return false;
     }
 
     std::wstring wCommand(size_needed, 0);
@@ -82,10 +81,73 @@ int WindowsProcess::getExitCode(){
         return -1;
     }
 
-    // If STILL_ACTIVE, the process is running, so return -1 or some sentinel
     if (exit_code == STILL_ACTIVE) {
         return -1;
     }
 
     return static_cast<int>(exit_code);
+}
+
+uint64_t FileTimeToUInt64(const FILETIME &ft) {
+    ULARGE_INTEGER uli;
+    uli.LowPart = ft.dwLowDateTime;
+    uli.HighPart = ft.dwHighDateTime;
+    return uli.QuadPart;
+}
+
+double WindowsProcess::getCPUUsage(){
+    DWORD processID = GetCurrentProcessId();
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+    if (!hProcess) {
+        std::cerr << "Failed to open process. Error: " << GetLastError() << std::endl;
+        return -1.0;
+    }
+    
+    FILETIME ftCreation, ftExit, ftKernel, ftUser, ftNow;
+    // Get initial process times
+    if (!GetProcessTimes(hProcess, &ftCreation, &ftExit, &ftKernel, &ftUser)) {
+        std::cerr << "GetProcessTimes failed. Error: " << GetLastError() << std::endl;
+        CloseHandle(hProcess);
+        return -1.0;
+    }
+    
+    // Get current system time
+    GetSystemTimeAsFileTime(&ftNow);
+    uint64_t prevKernel = FileTimeToUInt64(ftKernel);
+    uint64_t prevUser   = FileTimeToUInt64(ftUser);
+    uint64_t prevTime   = FileTimeToUInt64(ftNow);
+    
+    // Wait for the sampling interval
+    Sleep(sampleIntervalMs);
+    
+    // Get process times again
+    if (!GetProcessTimes(hProcess, &ftCreation, &ftExit, &ftKernel, &ftUser)) {
+        std::cerr << "GetProcessTimes failed after sleep. Error: " << GetLastError() << std::endl;
+        CloseHandle(hProcess);
+        return -1.0;
+    }
+    GetSystemTimeAsFileTime(&ftNow);
+    
+    uint64_t curKernel = FileTimeToUInt64(ftKernel);
+    uint64_t curUser   = FileTimeToUInt64(ftUser);
+    uint64_t curTime   = FileTimeToUInt64(ftNow);
+    
+    CloseHandle(hProcess);
+    
+    // Calculate the deltas for the process CPU time and the elapsed wall time
+    uint64_t processTimeDelta = (curKernel - prevKernel) + (curUser - prevUser);
+    uint64_t timeDelta = curTime - prevTime;
+    
+    // Compute the CPU usage as a percentage (relative to one core)
+    double cpuUsage = (timeDelta > 0) ? (processTimeDelta * 100.0 / timeDelta) : 0.0;
+    
+    return cpuUsage;
+}
+
+double WindowsProcess::getMemoryUsage(){
+    PROCESS_MEMORY_COUNTERS_EX pmc;
+    if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc))) {
+        SIZE_T memUsed = pmc.WorkingSetSize; // bytes
+        return static_cast<double>(memUsed) / (1024.0 * 1024.0);
+    }
 }

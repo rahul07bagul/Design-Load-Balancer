@@ -13,7 +13,7 @@ service AdminService {
       returns (ListServersResponse);
 
   // Update the health status of a server
-  rpc UpdateServerHealth (UpdateServerHealthRequest)
+  rpc UpdateServerHealth (UpdateServerHealthRequests)
       returns (google.protobuf.Empty);
 
   // Request that the LB create a new server
@@ -23,6 +23,12 @@ service AdminService {
   // Request that the LB remove a specific server
   rpc RemoveServer (RemoveServerRequest)
       returns (google.protobuf.Empty);
+
+  rpc GetMetrics(google.protobuf.Empty) 
+      returns (MetricsResponse);
+
+  rpc GetServerConstraints (google.protobuf.Empty) 
+      returns (ServerConstraintsResponse);
 }
 
 // Response of ListServers
@@ -38,12 +44,20 @@ message ServerInfo {
   bool isHealthy = 4;
   int64 last_health_check_unix_seconds = 5;
   int64 request_count = 6;
+  double cpu_usage = 7;
+  double memory_usage = 8;
 }
 
 // Request message for UpdateServerHealth
 message UpdateServerHealthRequest {
   string id       = 1;  // server's ID
   bool isHealthy  = 2;  // new health status
+  double cpu_usage = 3;
+  double memory_usage = 4;
+}
+
+message UpdateServerHealthRequests {
+  repeated UpdateServerHealthRequest updates = 1;
 }
 
 // Response to AddServer
@@ -54,4 +68,15 @@ message AddServerResponse {
 // Request message for RemoveServer
 message RemoveServerRequest {
   string id = 1;  // server's ID to remove
+}
+
+message MetricsResponse {
+  double cpu_usage = 1;    
+  double memory_usage = 2;
+}
+
+message ServerConstraintsResponse {
+  uint32 min_servers = 1;
+  uint32 max_servers = 2;
+  uint32 active_servers = 3;
 }

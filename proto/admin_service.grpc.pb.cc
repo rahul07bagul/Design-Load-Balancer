@@ -26,6 +26,8 @@ static const char* AdminService_method_names[] = {
   "/admin.AdminService/UpdateServerHealth",
   "/admin.AdminService/AddServer",
   "/admin.AdminService/RemoveServer",
+  "/admin.AdminService/GetMetrics",
+  "/admin.AdminService/GetServerConstraints",
 };
 
 std::unique_ptr< AdminService::Stub> AdminService::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -39,6 +41,8 @@ AdminService::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& chann
   , rpcmethod_UpdateServerHealth_(AdminService_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_AddServer_(AdminService_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_RemoveServer_(AdminService_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetMetrics_(AdminService_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetServerConstraints_(AdminService_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status AdminService::Stub::ListServers(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::admin::ListServersResponse* response) {
@@ -64,23 +68,23 @@ void AdminService::Stub::async::ListServers(::grpc::ClientContext* context, cons
   return result;
 }
 
-::grpc::Status AdminService::Stub::UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest& request, ::google::protobuf::Empty* response) {
-  return ::grpc::internal::BlockingUnaryCall< ::admin::UpdateServerHealthRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_UpdateServerHealth_, context, request, response);
+::grpc::Status AdminService::Stub::UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests& request, ::google::protobuf::Empty* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::admin::UpdateServerHealthRequests, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_UpdateServerHealth_, context, request, response);
 }
 
-void AdminService::Stub::async::UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
-  ::grpc::internal::CallbackUnaryCall< ::admin::UpdateServerHealthRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_UpdateServerHealth_, context, request, response, std::move(f));
+void AdminService::Stub::async::UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::admin::UpdateServerHealthRequests, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_UpdateServerHealth_, context, request, response, std::move(f));
 }
 
-void AdminService::Stub::async::UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) {
+void AdminService::Stub::async::UpdateServerHealth(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) {
   ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_UpdateServerHealth_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AdminService::Stub::PrepareAsyncUpdateServerHealthRaw(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::google::protobuf::Empty, ::admin::UpdateServerHealthRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_UpdateServerHealth_, context, request);
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AdminService::Stub::PrepareAsyncUpdateServerHealthRaw(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::google::protobuf::Empty, ::admin::UpdateServerHealthRequests, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_UpdateServerHealth_, context, request);
 }
 
-::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AdminService::Stub::AsyncUpdateServerHealthRaw(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequest& request, ::grpc::CompletionQueue* cq) {
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AdminService::Stub::AsyncUpdateServerHealthRaw(::grpc::ClientContext* context, const ::admin::UpdateServerHealthRequests& request, ::grpc::CompletionQueue* cq) {
   auto* result =
     this->PrepareAsyncUpdateServerHealthRaw(context, request, cq);
   result->StartCall();
@@ -133,6 +137,52 @@ void AdminService::Stub::async::RemoveServer(::grpc::ClientContext* context, con
   return result;
 }
 
+::grpc::Status AdminService::Stub::GetMetrics(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::admin::MetricsResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::google::protobuf::Empty, ::admin::MetricsResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_GetMetrics_, context, request, response);
+}
+
+void AdminService::Stub::async::GetMetrics(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::MetricsResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::google::protobuf::Empty, ::admin::MetricsResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetMetrics_, context, request, response, std::move(f));
+}
+
+void AdminService::Stub::async::GetMetrics(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::MetricsResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetMetrics_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::admin::MetricsResponse>* AdminService::Stub::PrepareAsyncGetMetricsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::admin::MetricsResponse, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_GetMetrics_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::admin::MetricsResponse>* AdminService::Stub::AsyncGetMetricsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncGetMetricsRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status AdminService::Stub::GetServerConstraints(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::admin::ServerConstraintsResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::google::protobuf::Empty, ::admin::ServerConstraintsResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_GetServerConstraints_, context, request, response);
+}
+
+void AdminService::Stub::async::GetServerConstraints(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::ServerConstraintsResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::google::protobuf::Empty, ::admin::ServerConstraintsResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetServerConstraints_, context, request, response, std::move(f));
+}
+
+void AdminService::Stub::async::GetServerConstraints(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::admin::ServerConstraintsResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GetServerConstraints_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::admin::ServerConstraintsResponse>* AdminService::Stub::PrepareAsyncGetServerConstraintsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::admin::ServerConstraintsResponse, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_GetServerConstraints_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::admin::ServerConstraintsResponse>* AdminService::Stub::AsyncGetServerConstraintsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncGetServerConstraintsRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 AdminService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       AdminService_method_names[0],
@@ -147,10 +197,10 @@ AdminService::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       AdminService_method_names[1],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< AdminService::Service, ::admin::UpdateServerHealthRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< AdminService::Service, ::admin::UpdateServerHealthRequests, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](AdminService::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::admin::UpdateServerHealthRequest* req,
+             const ::admin::UpdateServerHealthRequests* req,
              ::google::protobuf::Empty* resp) {
                return service->UpdateServerHealth(ctx, req, resp);
              }, this)));
@@ -174,6 +224,26 @@ AdminService::Service::Service() {
              ::google::protobuf::Empty* resp) {
                return service->RemoveServer(ctx, req, resp);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      AdminService_method_names[4],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< AdminService::Service, ::google::protobuf::Empty, ::admin::MetricsResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](AdminService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::google::protobuf::Empty* req,
+             ::admin::MetricsResponse* resp) {
+               return service->GetMetrics(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      AdminService_method_names[5],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< AdminService::Service, ::google::protobuf::Empty, ::admin::ServerConstraintsResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](AdminService::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::google::protobuf::Empty* req,
+             ::admin::ServerConstraintsResponse* resp) {
+               return service->GetServerConstraints(ctx, req, resp);
+             }, this)));
 }
 
 AdminService::Service::~Service() {
@@ -186,7 +256,7 @@ AdminService::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status AdminService::Service::UpdateServerHealth(::grpc::ServerContext* context, const ::admin::UpdateServerHealthRequest* request, ::google::protobuf::Empty* response) {
+::grpc::Status AdminService::Service::UpdateServerHealth(::grpc::ServerContext* context, const ::admin::UpdateServerHealthRequests* request, ::google::protobuf::Empty* response) {
   (void) context;
   (void) request;
   (void) response;
@@ -201,6 +271,20 @@ AdminService::Service::~Service() {
 }
 
 ::grpc::Status AdminService::Service::RemoveServer(::grpc::ServerContext* context, const ::admin::RemoveServerRequest* request, ::google::protobuf::Empty* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status AdminService::Service::GetMetrics(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::admin::MetricsResponse* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status AdminService::Service::GetServerConstraints(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::admin::ServerConstraintsResponse* response) {
   (void) context;
   (void) request;
   (void) response;
