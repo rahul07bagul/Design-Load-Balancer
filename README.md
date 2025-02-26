@@ -21,10 +21,10 @@ This project implements a Load Balancer System for managing backend servers effi
 ![Design](https://github.com/rahul07bagul/load-balancer-cpp/blob/main/images/img1.png)
 
 ## Architecture
-![Design](https://github.com/rahul07bagul/load-balancer-cpp/blob/main/Load%20Balancer.png)
+![Design](https://github.com/rahul07bagul/load-balancer-cpp/blob/main/images/Load%20Balancer.png)
 
 ## Class Diagram
-![Design](https://github.com/rahul07bagul/load-balancer-cpp/blob/main/Design.png)
+![Design](https://github.com/rahul07bagul/load-balancer-cpp/blob/main/images/Design.png)
 
 ## Installation & Setup
 ### Prerequisites
@@ -32,7 +32,7 @@ This project implements a Load Balancer System for managing backend servers effi
 - gRPC and Protobuf
 - Crow HTTP frameowrk
 - CMake
-
+- [Click here to view instructions.txt](https://github.com/rahul07bagul/load-balancer-cpp/blob/main/instructions.txt)
 ### Package Installation
 - Download vcpkg
 ```shell
