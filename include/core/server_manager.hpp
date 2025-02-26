@@ -27,7 +27,7 @@ public:
         size_t max_servers;
     };
     ServerStats getServerStats();
-    int findAvailablePort();
+    // int findAvailablePort();
     
 private:
     std::string executable_path_;
@@ -38,6 +38,6 @@ private:
     std::atomic<size_t> active_servers;
     std::vector<std::shared_ptr<Server>> servers_;
     std::mutex mutex_;
-    std::set<int> available_ports_;
-    const size_t max_port_range_ = 1000;
+    // std::set<int> available_ports_;
+    // const size_t max_port_range_ = 1000;
 };

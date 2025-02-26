@@ -3,16 +3,23 @@
 #include <thread>
 #include <atomic>
 #include <chrono>
+#include <vector>
+#include <string>
 #include <WinSock2.h>
 #include <WS2tcpip.h>
-#include "core/server.hpp"
-#include "core/server_manager.hpp"
+#include <grpcpp/grpcpp.h>
+#include "proto/admin_service.grpc.pb.h"
 
 #pragma comment(lib, "Ws2_32.lib")
 
+// Constants
+extern const double SCALE_UP_CPU_THRESHOLD;
+extern const double SCALE_DOWN_CPU_THRESHOLD;
+extern int health_checker_sleep_time;
+
 class HealthChecker {
 public:
-    explicit HealthChecker(std::shared_ptr<ServerManager> server_manager);
+    explicit HealthChecker(const std::string& lb_admin_address);
     ~HealthChecker();
 
     // Non-copyable
@@ -21,15 +28,21 @@ public:
 
     void start();
     void stop();
+    void checkServersOnce(); 
 
 private:
     void checkHealth();
-    bool isServerResponding(const std::shared_ptr<Server>& server);
-    bool initializeWinSock();
+    
+    std::vector<admin::ServerInfo> listAllServers();
+    bool isServerResponding(const std::string& host, int port);
+    void updateServerHealth(const std::vector<admin::UpdateServerHealthRequest>& updates);
+    bool getServerMetrics(const std::string& host, int port, double& outCpu, double& outMem);
+    admin::ServerConstraintsResponse getServerLimits();
+    void addServer();
+    void removeServer(const std::string& serverId);
+    void handleAutoScaling(double cpu, const std::string& serverId, const admin::ServerConstraintsResponse& constraints);
 
-    std::shared_ptr<ServerManager> server_manager_;
     std::atomic<bool> running_;
     std::unique_ptr<std::thread> health_check_thread_;
-    const std::chrono::seconds check_interval_{30}; // 30 seconds interval
-    bool wsaInitialized_;
+    std::unique_ptr<admin::AdminService::Stub> admin_stub_;
 };
