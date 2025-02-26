@@ -34,6 +34,8 @@ int main(int argc, char** argv) {
 
         // Parse command line arguments
         Config config = parseArgs(argc, argv);
+
+        //Get Configuration Settings
         std::shared_ptr<Configuration> configuration = Configuration::getInstance();
         
         std::cout << "Initializing load balancer with configuration:\n"

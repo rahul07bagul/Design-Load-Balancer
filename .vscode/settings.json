@@ -82,6 +82,9 @@
         "csignal": "cpp",
         "rope": "cpp",
         "*.ipp": "cpp",
-        "*.inc": "cpp"
+        "*.inc": "cpp",
+        "coroutine": "cpp",
+        "regex": "cpp",
+        "future": "cpp"
     }
 }

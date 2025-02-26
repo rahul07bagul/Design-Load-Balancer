@@ -23,15 +23,25 @@ AdminService::AdminService(std::shared_ptr<ServerManager> server_manager)
 }
 
 ::grpc::Status AdminService::UpdateServerHealth(::grpc::ServerContext* context, const admin::UpdateServerHealthRequests* request, ::google::protobuf::Empty* response) {
-    for (const auto& update : request->updates()) {
-        server_manager_->updateServerHealth(
-            update.id(),
-            update.ishealthy(),
-            update.cpu_usage(),
-            update.memory_usage()
-        );
+    try {
+        for (const auto& update : request->updates()) {
+            server_manager_->updateServerHealth(
+                update.id(),
+                update.ishealthy(),
+                update.cpu_usage(),
+                update.memory_usage()
+            );
+        }
+        return ::grpc::Status::OK;
+    } catch (const std::exception& e) {
+        std::cerr << "Exception in UpdateServerHealth: " << e.what() << std::endl;
+        return ::grpc::Status(::grpc::StatusCode::INTERNAL, 
+                            std::string("Server error: ") + e.what());
+    } catch (...) {
+        std::cerr << "Unknown exception in UpdateServerHealth" << std::endl;
+        return ::grpc::Status(::grpc::StatusCode::INTERNAL, 
+                            "Unknown server error");
     }
-    return ::grpc::Status::OK;
 }
 
 ::grpc::Status AdminService::AddServer( ::grpc::ServerContext* context, const ::google::protobuf::Empty* request, admin::AddServerResponse* response) {
