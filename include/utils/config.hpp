@@ -5,6 +5,7 @@
 // Declare as extern to indicate they're defined elsewhere
 extern std::string server_address;
 extern std::string load_balancer_address;
+extern int health_checker_sleep_time;
 
 struct Config {
     std::string backend_path;

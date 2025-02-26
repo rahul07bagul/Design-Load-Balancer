@@ -8,10 +8,7 @@
 
 static HANDLE CreateServerProcess(const std::string& command);
 
-ServerManager::ServerManager(const std::string& executable_path,
-                           int start_port,
-                           size_t min_servers,
-                           size_t max_servers)
+ServerManager::ServerManager(const std::string& executable_path, int start_port, size_t min_servers, size_t max_servers)
     : executable_path_(executable_path)
     , next_port_(start_port)
     , min_servers_(min_servers)
@@ -28,7 +25,7 @@ std::vector<std::shared_ptr<Server>> ServerManager::getAllServers() {
 }
 
 std::shared_ptr<Server> ServerManager::findServerById(const std::string& id) {
-    std::lock_guard<std::mutex> lock(mutex_);
+    //std::lock_guard<std::mutex> lock(mutex_);
     for (const auto& srv : servers_) {
         if (srv->getId() == id) {
             return srv;
@@ -72,17 +69,41 @@ std::shared_ptr<Server> ServerManager::addServer() {
     return server;
 }
 
-void ServerManager::updateServerHealth(const std::string& id, 
-    bool isHealthy, 
-    double cpuUsage, 
-    double memoryUsage) {
+// int ServerManager::findAvailablePort() {
+//     // If we have available ports in our pool, use one
+//     if (!available_ports_.empty()) {
+//         int port = *available_ports_.begin();
+//         available_ports_.erase(available_ports_.begin());
+//         return port;
+//     }
+    
+//     // Otherwise, use the next_port_ if it's still within range
+//     if (next_port_ < start_port_ + max_port_range_) {
+//         int port = next_port_++;
+//         return port;
+//     }
+    
+//     return -1;
+// }
+
+void ServerManager::updateServerHealth(const std::string& id, bool isHealthy, double cpuUsage, double memoryUsage) {
     std::lock_guard<std::mutex> lock(mutex_);
 
     auto server = findServerById(id);
     if (!server) {
         return;
     }
-
+    
+    //If a server dies unexpectedly (not through the health checker), 
+    //the active_servers counter in ServerManager can become inconsistent with the actual number of healthy servers
+    if(isHealthy && !server->isHealthy()) {
+        //it should never be the case that a server is unhealthy and not in the servers_ list, 
+        //as the server which goes offline never comes back online on same port,
+        //but we should check for it anyway
+        active_servers++;
+    } else if (!isHealthy && server->isHealthy()) {
+        active_servers--;
+    }
     server->setHealthStatus(isHealthy);
     server->setCPUUsage(cpuUsage);
     server->setMemoryUsage(memoryUsage);
