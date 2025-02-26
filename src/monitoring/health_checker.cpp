@@ -8,14 +8,42 @@
 
 using namespace std::chrono_literals;
 
-static bool running = true;
 const double SCALE_UP_CPU_THRESHOLD = 80.0;
 const double SCALE_DOWN_CPU_THRESHOLD = 20.0;
 static const double NEW_SERVER_USAGE = 0.0;
 
-std::vector<admin::ServerInfo> listAllServers(std::unique_ptr<admin::AdminService::Stub>& stub) { grpc::ClientContext ctx; google::protobuf::Empty empty; admin::ListServersResponse response;
+HealthChecker::HealthChecker(const std::string& lb_admin_address)
+    : running_(false) {
+    auto channel = grpc::CreateChannel(lb_admin_address, grpc::InsecureChannelCredentials());
+    admin_stub_ = admin::AdminService::NewStub(channel);
+}
 
-    auto status = stub->ListServers(&ctx, empty, &response);
+HealthChecker::~HealthChecker() {
+    stop();
+}
+
+void HealthChecker::start() {
+    if (!running_) {
+        running_ = true;
+        health_check_thread_ = std::make_unique<std::thread>(&HealthChecker::checkHealth, this);
+    }
+}
+
+void HealthChecker::stop() {
+    if (running_) {
+        running_ = false;
+        if (health_check_thread_ && health_check_thread_->joinable()) {
+            health_check_thread_->join();
+        }
+    }
+}
+
+std::vector<admin::ServerInfo> HealthChecker::listAllServers() {
+    grpc::ClientContext ctx;
+    google::protobuf::Empty empty;
+    admin::ListServersResponse response;
+
+    auto status = admin_stub_->ListServers(&ctx, empty, &response);
     if (!status.ok()) {
         std::cerr << "ListServers RPC failed: " << status.error_message() << std::endl;
         return {};
@@ -28,7 +56,7 @@ std::vector<admin::ServerInfo> listAllServers(std::unique_ptr<admin::AdminServic
     return result;
 }
 
-bool isServerResponding(const std::string& host, int port) {
+bool HealthChecker::isServerResponding(const std::string& host, int port) {
     SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sock == INVALID_SOCKET) {
         std::cerr << "Failed to create socket: " << WSAGetLastError() << std::endl;
@@ -94,9 +122,8 @@ bool isServerResponding(const std::string& host, int port) {
     return true;
 }
 
-void updateServerHealth(std::unique_ptr<admin::AdminService::Stub>& stub, const std::vector<admin::UpdateServerHealthRequest>& updates) {
+void HealthChecker::updateServerHealth(const std::vector<admin::UpdateServerHealthRequest>& updates) {
     admin::UpdateServerHealthRequests req;
-    //std::cout << "Sending " << updates.size() << " health updates" << std::endl;
     
     for (auto& u : updates) {
         auto* s = req.add_updates();
@@ -108,7 +135,7 @@ void updateServerHealth(std::unique_ptr<admin::AdminService::Stub>& stub, const 
 
     grpc::ClientContext ctx;
     google::protobuf::Empty empty;
-    auto status = stub->UpdateServerHealth(&ctx, req, &empty);
+    auto status = admin_stub_->UpdateServerHealth(&ctx, req, &empty);
     
     if (!status.ok()) {
         std::cerr << "UpdateServerHealth RPC failed!\n"
@@ -120,7 +147,7 @@ void updateServerHealth(std::unique_ptr<admin::AdminService::Stub>& stub, const 
     }
 }
 
-bool getServerMetrics(const std::string& host, int port, double& outCpu, double& outMem) {
+bool HealthChecker::getServerMetrics(const std::string& host, int port, double& outCpu, double& outMem) {
     std::string target = host + ":" + std::to_string(port);
     auto channel = grpc::CreateChannel(target, grpc::InsecureChannelCredentials());
     auto stub = admin::AdminService::NewStub(channel);
@@ -139,22 +166,22 @@ bool getServerMetrics(const std::string& host, int port, double& outCpu, double&
     return true;
 }
 
-admin::ServerConstraintsResponse getServerLimits(std::unique_ptr<admin::AdminService::Stub>& stub) {
+admin::ServerConstraintsResponse HealthChecker::getServerLimits() {
     grpc::ClientContext ctx;
     google::protobuf::Empty empty;
     admin::ServerConstraintsResponse resp;
-    auto status = stub->GetServerConstraints(&ctx, empty, &resp);
+    auto status = admin_stub_->GetServerConstraints(&ctx, empty, &resp);
     if (!status.ok()) {
         std::cerr << "GetServerConstraints RPC failed: " << status.error_message() << std::endl;
     }
     return resp;
 }
 
-void addServer(std::unique_ptr<admin::AdminService::Stub>& stub) {
+void HealthChecker::addServer() {
     grpc::ClientContext ctx;
     google::protobuf::Empty empty;
     admin::AddServerResponse resp;
-    auto status = stub->AddServer(&ctx, empty, &resp);
+    auto status = admin_stub_->AddServer(&ctx, empty, &resp);
     if (!status.ok()) {
         std::cerr << "AddServer RPC failed: " << status.error_message() << std::endl;
     } else {
@@ -162,18 +189,93 @@ void addServer(std::unique_ptr<admin::AdminService::Stub>& stub) {
     }
 }
 
-void removeServer(std::unique_ptr<admin::AdminService::Stub>& stub, const std::string& serverId) {
+void HealthChecker::removeServer(const std::string& serverId) {
     admin::RemoveServerRequest req;
     req.set_id(serverId);
 
     grpc::ClientContext ctx;
     google::protobuf::Empty empty;
-    auto status = stub->RemoveServer(&ctx, req, &empty);
+    auto status = admin_stub_->RemoveServer(&ctx, req, &empty);
     if (!status.ok()) {
         std::cerr << "RemoveServer RPC failed for " << serverId
                   << ": " << status.error_message() << std::endl;
     }
 }
+
+void HealthChecker::handleAutoScaling(double cpu, const std::string& serverId, 
+                                     const admin::ServerConstraintsResponse& constraints) {
+    if (cpu > SCALE_UP_CPU_THRESHOLD && constraints.active_servers() < constraints.max_servers()) {
+        std::cout << "Scaling up due to high CPU on server " << serverId << std::endl;
+        //Scale Up
+        addServer();
+    } else if (cpu < SCALE_DOWN_CPU_THRESHOLD && constraints.active_servers() > constraints.min_servers()) {
+        std::cout << "Scaling down server " << serverId << " due to low CPU usage" << std::endl;
+        //Scale Down
+        removeServer(serverId);
+    } else {
+        // No scaling needed or possible
+        if (cpu > SCALE_UP_CPU_THRESHOLD) {
+            std::cout << "Server " << serverId << " CPU high but already at max servers limit" << std::endl;
+        } else if (cpu < SCALE_DOWN_CPU_THRESHOLD) {
+            std::cout << "Server " << serverId << " CPU low but already at min servers limit" << std::endl;
+        }
+    }
+}
+
+void HealthChecker::checkServersOnce() {
+    std::cout << "\n=== External Health Check Started ===" << std::endl;
+
+    auto servers = listAllServers();
+    auto constraints = getServerLimits();
+    std::cout << "Active servers: " << constraints.active_servers() << std::endl;
+    std::vector<admin::UpdateServerHealthRequest> updates;  
+
+    for (auto& s : servers) {
+        admin::UpdateServerHealthRequest server_metrics;
+        server_metrics.set_id(s.id());
+
+        bool currentHealth = s.ishealthy();
+        bool check = isServerResponding(s.host(), s.port());
+        
+        std::cout << "Checking server " << s.id() << ":\n"
+                  << "  Status: " << (check ? "Healthy" : "Unhealthy") << std::endl;
+
+        if (currentHealth && !check) {
+            std::cout << "Server " << s.id() << " is down" << std::endl;
+            //Current server is unhealthy
+            server_metrics.set_ishealthy(false);
+            //Add new server
+            addServer();
+        } else if(check){
+            server_metrics.set_ishealthy(true);
+
+            double cpu, mem;
+            if (getServerMetrics(s.host(), s.port(), cpu, mem)) {
+                server_metrics.set_cpu_usage(cpu);
+                server_metrics.set_memory_usage(mem);
+
+                std::cout << "Server " << s.id() << ":\n"
+                          << "  CPU: " << cpu << "%\n"
+                          << "  Memory: " << mem << "%\n";
+                
+                handleAutoScaling(cpu, s.id(), constraints);
+            }
+        }
+        updates.push_back(server_metrics);
+    }
+
+    updateServerHealth(updates);
+
+    std::cout << "=== Health Check Completed ===" << std::endl;
+}
+
+void HealthChecker::checkHealth() {
+    while (running_) {
+        checkServersOnce();
+        std::this_thread::sleep_for(std::chrono::seconds(health_checker_sleep_time));
+    }
+}
+
 
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -182,63 +284,20 @@ int main(int argc, char** argv) {
         return 1;
     }
     std::string lb_admin_address = argv[1];
-
-    auto channel = grpc::CreateChannel(lb_admin_address, grpc::InsecureChannelCredentials());
-    auto stub = admin::AdminService::NewStub(channel);
-
-    while (running) {
-        std::cout << "\n=== External Health Check Started ===" << std::endl;
-
-        auto servers = listAllServers(stub);
-        auto constraints = getServerLimits(stub);
-        std::cout << "Active servers: " << constraints.active_servers() << std::endl;
-        std::vector<admin::UpdateServerHealthRequest> updates;  
-
-        for (auto& s : servers) {
-            admin::UpdateServerHealthRequest server_metrics;
-            server_metrics.set_id(s.id());
-
-            bool currentHealth = s.ishealthy();
-            bool check = isServerResponding(s.host(), s.port());
-            
-            std::cout << "Checking server " << s.id() << ":\n"
-                      << "  Status: " << (check ? "Healthy" : "Unhealthy") << std::endl;
-
-            if (currentHealth && !check) {
-                std::cout << "Server " << s.id() << " is down" << std::endl;
-                //Current server is unhealthy
-                server_metrics.set_ishealthy(false);
-                addServer(stub);
-            } else if(check){
-                server_metrics.set_ishealthy(true);
-
-                double cpu, mem;
-                if (getServerMetrics(s.host(), s.port(), cpu, mem)) {
-                    server_metrics.set_cpu_usage(cpu);
-                    server_metrics.set_memory_usage(mem);
-
-                    std::cout << "Server " << s.id() << ":\n"
-                              << "  CPU: " << cpu << "%\n"
-                              << "  Memory: " << mem << "%\n";
-                    if (cpu > SCALE_UP_CPU_THRESHOLD && constraints.active_servers() < constraints.max_servers()) {
-                        std::cout << "Scaling up server " << s.id() << std::endl;
-                        // Avoid add if already at max servers
-                        addServer(stub);
-                    } else if (cpu < SCALE_DOWN_CPU_THRESHOLD && constraints.active_servers() > constraints.min_servers()) {
-                        std::cout << "Scaling down server " << s.id() << std::endl;
-                        // Avoid remove if already at min servers
-                        removeServer(stub, s.id());
-                    }
-                }
-            }
-            updates.push_back(server_metrics);
-        }
-
-        updateServerHealth(stub, updates);
-
-        std::cout << "=== Health Check Completed ===" << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(health_checker_sleep_time));
-    }
+    
+    HealthChecker healthChecker(lb_admin_address);
+    
+    // healthChecker.checkServersOnce();
+    
+    // Run continuous health checks in a dedicated thread
+    healthChecker.start();
+    
+    std::cout << "Health checker running. Press Ctrl+C to stop." << std::endl;
+    
+    std::string input;
+    std::getline(std::cin, input);
+    
+    healthChecker.stop();
 
     return 0;
 }
