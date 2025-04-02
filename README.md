@@ -3,6 +3,13 @@
 ## Overview
 This project implements a Load Balancer System for managing backend servers efficiently. It supports automatic server scaling, health checking, and request distribution using a Round-Robin, Least Connection, Resource Based Strategy. The system is built using C++ with gRPC for inter-service communication and Crow for HTTP-based management.
 
+<p align="center">
+  <img src="https://img.shields.io/badge/c++-%2300599C.svg?style=for-the-badge&logo=c%2B%2B&logoColor=white" alt="C++">
+  <img src="https://img.shields.io/badge/CMake-%23008FBA.svg?style=for-the-badge&logo=cmake&logoColor=white" alt="CMake">
+  <img src="https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows">
+  <img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux">
+</p>
+
 ## Features
 - Load Balancing: Distributes incoming requests among active backend servers.
 - Server Management: Allows dynamic addition and removal of backend servers.
